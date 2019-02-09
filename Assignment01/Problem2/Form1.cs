@@ -37,10 +37,21 @@ namespace Problem2
 
       private void VoBtnHE_Click( object aoSender, EventArgs aoE ) 
       {
-         HistogramEqualizer koHE  = new HistogramEqualizer( );
-         Bitmap             koBmp = koHE.MProcess( ( Bitmap )this.VoPBOriginal.Image );
-         FormPicture        koForm = new FormPicture( koBmp );
-         koForm.Show( this );
+         HistogramEqualizer koHE;
+         Bitmap             koBmp; 
+         FormPicture        koForm;
+
+         if( ( Bitmap )this.VoPBOriginal.Image != null )
+         {
+            koHE = new HistogramEqualizer( );
+            koBmp = koHE.MProcess( ( Bitmap )this.VoPBOriginal.Image );
+            koForm = new FormPicture( koBmp );
+            koForm.Show( this );
+         }
+         else
+         {
+            MessageBox.Show( "Please browse for a bitmap to process." );
+         }
       }
    }
 }

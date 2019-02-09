@@ -11,34 +11,6 @@ namespace Problem2
          // TODO: Implement Constructor
       }
 
-      public Bitmap MConvertToGray( Bitmap aoBmp )
-      {        
-         int    kiI;
-         int    kiJ;
-         int    kiGray;
-         Color  koColor;
-         Bitmap koBmp = new Bitmap( aoBmp );
-
-         for( kiI = 0; kiI < aoBmp.Width; kiI++ )
-         {
-            for( kiJ = 0; kiJ < aoBmp.Height; kiJ++ )
-            {
-               // Get the color at the pixel coordinate
-               koColor = aoBmp.GetPixel( kiI, kiJ );
-
-               // Convert the RGB color to grayscale
-               kiGray = ( byte )( ( 0.299 * koColor.R ) + 
-                                  ( 0.587 * koColor.G ) +
-                                  ( 0.114 * koColor.B ) );
-
-               // Set the pixel to the grayscale value
-               koBmp.SetPixel( kiI, kiJ, Color.FromArgb( kiGray, kiGray, kiGray ) );
-            }
-         }
-         
-         return( koBmp );
-      }
-
       public Bitmap MProcess( Bitmap aoBmp )
       {
          Bitmap    koBmp  = new Bitmap( aoBmp );
@@ -52,9 +24,9 @@ namespace Problem2
          int kiB;
 
          long kiSize = koBmp.Width * koBmp.Height;
-         long kiCumR = koHist.VipR[ 0 ];
-         long kiCumG = koHist.VipG[ 0 ];
-         long kiCumB = koHist.VipB[ 0 ];
+         long kiCdfR = koHist.VipR[ 0 ];
+         long kiCdfG = koHist.VipG[ 0 ];
+         long kiCdfB = koHist.VipB[ 0 ];
 
          double[ ] kdHistR = new double[ Histogram.XiCount ];
          double[ ] kdHistG = new double[ Histogram.XiCount ];
@@ -66,14 +38,14 @@ namespace Problem2
 
          for( kiX = 1; kiX < Histogram.XiCount; kiX++ )
          {
-            kiCumR += koHist.VipR[ kiX ];
-            kdHistR[ kiX ] = ( kiCumR * Histogram.XiCount ) / kiSize;
+            kiCdfR += koHist.VipR[ kiX ];
+            kdHistR[ kiX ] = ( kiCdfR * Histogram.XiCount ) / kiSize;
 
-            kiCumG += koHist.VipG[ kiX ];
-            kdHistG[ kiX ] = ( kiCumG * Histogram.XiCount ) / kiSize;
+            kiCdfG += koHist.VipG[ kiX ];
+            kdHistG[ kiX ] = ( kiCdfG * Histogram.XiCount ) / kiSize;
 
-            kiCumB += koHist.VipB[ kiX ];
-            kdHistB[ kiX ] = ( kiCumB * Histogram.XiCount ) / kiSize;
+            kiCdfB += koHist.VipB[ kiX ];
+            kdHistB[ kiX ] = ( kiCdfB * Histogram.XiCount ) / kiSize;
          }
          
          for( kiY = 0; kiY < koBmp.Height; kiY++ )
@@ -90,12 +62,6 @@ namespace Problem2
                kiR = ( int )kdHistR[ kiR ];
                kiG = ( int )kdHistG[ kiG ];
                kiB = ( int )kdHistB[ kiB ];
-
-               if( kiR == 0 && kiG == 0 && kiB == 0 )
-               {
-                  // Break here
-                  kiR = kiG;
-               }
 
                // Range check RGB values
                if( kiR > 255 ) kiR = 255;

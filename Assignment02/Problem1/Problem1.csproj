@@ -55,8 +55,12 @@
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="TcKernel.cs" />
+    <Compile Include="TcKernelGaussian.cs" />
+    <Compile Include="TcKernelGaussianDiff.cs" />
+    <Compile Include="TcKernelGradient.cs" />
     <Compile Include="TcKernelHighPass.cs" />
     <Compile Include="TcKernelIdentity.cs" />
+    <Compile Include="TcKernelLaplacian.cs" />
     <Compile Include="TcKernelLowPass.cs" />
     <Compile Include="TcKernelSharpen.cs" />
     <EmbeddedResource Include="Form1.resx">

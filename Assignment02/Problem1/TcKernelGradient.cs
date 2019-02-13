@@ -4,38 +4,43 @@ using System.Drawing.Imaging;
 
 namespace Problem1
 {
-   public abstract class TcKernel
+   public class TcKernelGradient : TcKernel
    {
-      protected const int    xiMinSize = 3; /**< Minimum Kernel Size */
-      protected double[ ][ ] vdpM;          /**< Kernel Matrix */
+      protected double[ ][ ] vdpY;          /**< Kernel Matrix dP/dy */
 
-      public TcKernel( int aiSize )
+      public TcKernelGradient( int aiSize ) : base( aiSize )
       {
          int kiSize = aiSize;
-         int kiRow;
+         int kiRow, kiCol;
+         int kiDx, kiDy;
+         int kiCenter = ( this.vdpM.Length - 1 ) / 2;
 
          if( aiSize < xiMinSize )
          {
             kiSize = aiSize;
          }
 
-         this.vdpM = new double[ kiSize ][ ];
+         this.vdpY = new double[ kiSize ][ ];
          for( kiRow = 0; kiRow < kiSize; kiRow++ )
          {
-            this.vdpM[ kiRow ] = new double[ kiSize ];
+            this.vdpY[ kiRow ] = new double[ kiSize ];
+         }
+
+         kiDy = -kiCenter;
+         for( kiRow = 0; kiRow < this.vdpM.Length; kiRow++ )
+         {
+            kiDx = kiCenter;
+            for( kiCol = 0; kiCol < this.vdpM.Length; kiCol++ )
+            {
+               this.vdpM[ kiRow ][ kiCol ] = kiDx;
+               this.vdpY[ kiRow ][ kiCol ] = kiDy;
+               kiDx--;
+            }
+            kiDy++;
          }
       }
 
-      ~TcKernel( )
-      {
-         // TODO: Does vdpM need to be cleaned up?
-      }
-
-      /**
-       * @note Assumes kernel is symmetric or already rotated by 180 degrees
-       * @note The return format is BGR, not RGB
-       */ 
-      public virtual Bitmap MConvolve( Bitmap aoBmp )
+      public override Bitmap MConvolve( Bitmap aoBmp )
       {
          Bitmap     koBmp = ( Bitmap )aoBmp.Clone( );
          BitmapData koDst = koBmp.LockBits( new Rectangle( 0, 0, koBmp.Width, koBmp.Height ),
@@ -59,6 +64,8 @@ namespace Problem1
             double[ ][ ] kdpMb = new double[ this.vdpM.Length ][ ];
             double[ ][ ] kdpMg = new double[ this.vdpM.Length ][ ];
             double[ ][ ] kdpMr = new double[ this.vdpM.Length ][ ];
+            double kdCbX, kdCgX, kdCrX;
+            double kdCbY, kdCgY, kdCrY;
             double kdCb, kdCg, kdCr;
 
             for( kiIndex = 0; kiIndex < this.vdpM.Length; kiIndex++ )
@@ -73,9 +80,12 @@ namespace Problem1
                for( int kiX = 0; kiX < koBmp.Width - ( this.vdpM.Length - 1 ); ++kiX )
                {
 
-                  kdCb = 0.0;
-                  kdCg = 0.0;
-                  kdCr = 0.0;
+                  kdCbX = 0.0;
+                  kdCgX = 0.0;
+                  kdCrX = 0.0;
+                  kdCbY = 0.0;
+                  kdCgY = 0.0;
+                  kdCrY = 0.0;
                   for( int kiRow = 0; kiRow < this.vdpM.Length; kiRow++ )
                   {
                      for( int kiCol = 0; kiCol < this.vdpM.Length; kiCol++ )
@@ -84,11 +94,22 @@ namespace Problem1
                         kdpMg[ kiRow ][ kiCol ] = kcpSrc[ ( 3 * kiCol ) + ( kiStride * kiRow ) + 1 ];
                         kdpMr[ kiRow ][ kiCol ] = kcpSrc[ ( 3 * kiCol ) + ( kiStride * kiRow ) + 2 ];
 
-                        kdCb += kdpMb[ kiRow ][ kiCol ] * this.vdpM[ kiRow ][ kiCol ];
-                        kdCg += kdpMg[ kiRow ][ kiCol ] * this.vdpM[ kiRow ][ kiCol ];
-                        kdCr += kdpMr[ kiRow ][ kiCol ] * this.vdpM[ kiRow ][ kiCol ];
+                        // Apply dP/dx
+                        kdCbX += kdpMb[ kiRow ][ kiCol ] * this.vdpM[ kiRow ][ kiCol ];
+                        kdCgX += kdpMg[ kiRow ][ kiCol ] * this.vdpM[ kiRow ][ kiCol ];
+                        kdCrX += kdpMr[ kiRow ][ kiCol ] * this.vdpM[ kiRow ][ kiCol ];
+
+                        // Apply dP/dy
+                        kdCbY += kdpMb[ kiRow ][ kiCol ] * this.vdpY[ kiRow ][ kiCol ];
+                        kdCgY += kdpMg[ kiRow ][ kiCol ] * this.vdpY[ kiRow ][ kiCol ];
+                        kdCrY += kdpMr[ kiRow ][ kiCol ] * this.vdpY[ kiRow ][ kiCol ];
                      }
                   }
+
+                  // Calculate Gradient
+                  kdCb = Math.Sqrt( ( kdCbX * kdCbX ) + ( kdCbY * kdCbY ) );
+                  kdCg = Math.Sqrt( ( kdCgX * kdCgX ) + ( kdCgY * kdCgY ) );
+                  kdCr = Math.Sqrt( ( kdCrX * kdCrX ) + ( kdCrY * kdCrY ) );
                        
                   if( kdCb <   0 ) kdCb =   0;
                   if( kdCb > 255 ) kdCb = 255;

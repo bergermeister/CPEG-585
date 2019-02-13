@@ -6,7 +6,7 @@ namespace Problem1
 {
    public partial class Form1 : Form
    {
-      private const int xiSize = 3;
+      private const int xiSize = 5;
       private TcKernel voKernel;
 
       public Form1( )
@@ -66,19 +66,19 @@ namespace Problem1
             this.voKernel = new TcKernelHighPass( xiSize );
             break;
          case "voRBtnSharpen":
-            this.voKernel = new TcKernelSharpen( xiSize, 0.1 );
+            this.voKernel = new TcKernelSharpen( xiSize, 0.5 );
             break;
          case "voRBtnGaussian":
-            // TODO
+            this.voKernel = new TcKernelGaussian( xiSize, 0.5 );
             break;
          case "voRBtnGradient":
-            // TODO
+            this.voKernel = new TcKernelGradient( xiSize );
             break;
          case "voRBtnLaplacian":
-            // TODO
+            this.voKernel = new TcKernelLaplacian( xiSize );
             break;
          case "voRBtnDiffGaussian":
-            // TODO
+            this.voKernel = new TcKernelGaussianDiff( xiSize, 0.5, 2.5 );
             break;
          }
          

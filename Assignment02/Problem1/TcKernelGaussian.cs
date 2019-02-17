@@ -22,6 +22,8 @@ namespace Problem1
             }
             kiOffY++;
          }
+
+         mNormalize( ref this.vdpM );
       }
 
       protected double mGaussian( double adX, double adY, double adSigma )

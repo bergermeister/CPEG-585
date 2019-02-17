@@ -4,7 +4,7 @@ using System.Drawing.Imaging;
 
 namespace Problem1
 {
-   public abstract class TcKernel
+   public class TcKernel
    {
       protected const int    xiMinSize = 3; /**< Minimum Kernel Size */
       protected double[ ][ ] vdpM;          /**< Kernel Matrix */
@@ -24,6 +24,23 @@ namespace Problem1
          {
             this.vdpM[ kiRow ] = new double[ kiSize ];
          }
+      }
+
+      public TcKernel( double[ ][ ] adpKernel )
+      {
+         int kiRow, kiCol;
+
+         this.vdpM = new double[ adpKernel.Length ][ ];
+         for( kiRow = 0; kiRow < adpKernel.Length; kiRow++ )
+         {
+            this.vdpM[ kiRow ] = new double[ adpKernel.Length ];
+            for( kiCol = 0; kiCol < adpKernel.Length; kiCol++ )
+            {
+               this.vdpM[ kiRow ][ kiCol ] = adpKernel[ kiRow ][ kiCol ];
+            }
+         }
+
+         mNormalize( ref this.vdpM );
       }
 
       ~TcKernel( )
@@ -113,6 +130,31 @@ namespace Problem1
          aoBmp.UnlockBits( koSrc );
 
          return( koBmp );
+      }
+
+      protected static void mNormalize( ref double[ ][ ] adM )
+      {
+         int    kiRow, kiCol;
+         double kdSum = 0.0;
+
+         for( kiRow = 0; kiRow < adM.Length; kiRow++ )
+         {
+            for( kiCol = 0; kiCol < adM.Length; kiCol++ )
+            {
+               kdSum += adM[ kiRow ][ kiCol ];
+            }
+         }
+
+         if( kdSum != 0.0 )
+         { 
+            for( kiRow = 0; kiRow < adM.Length; kiRow++ )
+            {
+               for( kiCol = 0; kiCol < adM.Length; kiCol++ )
+               {
+                  adM[ kiRow ][ kiCol ] /= kdSum;
+               }
+            }
+         }
       }
    }
 }

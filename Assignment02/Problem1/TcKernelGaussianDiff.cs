@@ -21,6 +21,8 @@
             }
             kiOffY++;
          }
+
+         mNormalize( ref this.vdpM );
       }
    }
 }

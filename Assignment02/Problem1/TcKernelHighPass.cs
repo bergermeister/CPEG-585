@@ -17,7 +17,8 @@
          }
 
          this.vdpM[ kiCenter ][ kiCenter ] = kiScale - 1;
-      }
 
+         mNormalize( ref this.vdpM );
+      }
    }
 }

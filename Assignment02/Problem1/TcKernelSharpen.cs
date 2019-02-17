@@ -5,7 +5,7 @@
       public TcKernelSharpen( int aiSize, double adP ) : base( aiSize )
       {
          int    kiRow, kiCol;
-         double kdP = adP;
+         double kdP   = adP;
          int kiCenter = ( this.vdpM.Length - 1 ) / 2;
          int kiScale  = this.vdpM.Length * this.vdpM.Length;
 
@@ -16,11 +16,13 @@
          {
             for( kiCol = 0; kiCol < this.vdpM.Length; kiCol++ )
             {
-               this.vdpM[ kiRow ][ kiCol ] = -( kdP / ( double )kiScale );
+               this.vdpM[ kiRow ][ kiCol ] = -kdP;
             }
          }
 
-         this.vdpM[ kiCenter ][ kiCenter ] = ( ( double )kiScale - kdP ) / ( double )kiScale;
+         this.vdpM[ kiCenter ][ kiCenter ] = ( double )kiScale - kdP;
+
+         mNormalize( ref this.vdpM );
       }
    }
 }

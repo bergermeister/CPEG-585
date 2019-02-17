@@ -6,7 +6,7 @@ namespace Problem1
 {
    public partial class Form1 : Form
    {
-      private const int xiSize = 5;
+      private const int xiSize = 3;
       private TcKernel voKernel;
 
       public Form1( )
@@ -52,36 +52,44 @@ namespace Problem1
 
       private void mKernelCheckedChanged( object aoSender, EventArgs aoE )
       {
-         RadioButton koRBtn = aoSender as RadioButton;
+         RadioButton  koRBtn = aoSender as RadioButton;
+         CustomKernel koDlg;
 
-         switch( koRBtn.Name )
-         {
-         case "voRBtnIdentity":
-            this.voKernel = new TcKernelIdentity( xiSize );
-            break;
-         case "voRBtnAverage":
-            this.voKernel = new TcKernelLowPass( xiSize );
-            break;
-         case "voRBtnHighPass":
-            this.voKernel = new TcKernelHighPass( xiSize );
-            break;
-         case "voRBtnSharpen":
-            this.voKernel = new TcKernelSharpen( xiSize, 0.5 );
-            break;
-         case "voRBtnGaussian":
-            this.voKernel = new TcKernelGaussian( xiSize, 0.5 );
-            break;
-         case "voRBtnGradient":
-            this.voKernel = new TcKernelGradient( xiSize );
-            break;
-         case "voRBtnLaplacian":
-            this.voKernel = new TcKernelLaplacian( xiSize );
-            break;
-         case "voRBtnDiffGaussian":
-            this.voKernel = new TcKernelGaussianDiff( xiSize, 0.5, 2.5 );
-            break;
+         if( koRBtn.Checked )
+         { 
+            switch( koRBtn.Name )
+            {
+            case "voRBtnIdentity":
+               this.voKernel = new TcKernelIdentity( xiSize );
+               break;
+            case "voRBtnAverage":
+               this.voKernel = new TcKernelLowPass( xiSize );
+               break;
+            case "voRBtnHighPass":
+               this.voKernel = new TcKernelHighPass( xiSize );
+               break;
+            case "voRBtnSharpen":
+               this.voKernel = new TcKernelSharpen( xiSize, 0.5 );
+               break;
+            case "voRBtnGaussian":
+               this.voKernel = new TcKernelGaussian( xiSize, 0.5 );
+               break;
+            case "voRBtnGradient":
+               this.voKernel = new TcKernelGradient( xiSize );
+               break;
+            case "voRBtnLaplacian":
+               this.voKernel = new TcKernelLaplacian( xiSize );
+               break;
+            case "voRBtnDiffGaussian":
+               this.voKernel = new TcKernelGaussianDiff( xiSize, 0.5, 2.5 );
+               break;
+            case "voRBtnCustom":
+               koDlg = new CustomKernel( );
+               koDlg.ShowDialog( this );
+               this.voKernel = new TcKernel( koDlg.VopM );
+               break;
+            }
          }
-         
       }
    }
 }

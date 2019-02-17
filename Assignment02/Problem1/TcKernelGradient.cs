@@ -38,6 +38,9 @@ namespace Problem1
             }
             kiDy++;
          }
+
+         mNormalize( ref this.vdpM );
+         mNormalize( ref this.vdpY );
       }
 
       public override Bitmap MConvolve( Bitmap aoBmp )

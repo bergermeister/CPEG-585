@@ -2,15 +2,15 @@
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <SchemaVersion>2.0</SchemaVersion>
-    <ProjectGuid>82ac9b60-fb97-4b58-9199-aa4ab90b51b3</ProjectGuid>
+    <ProjectGuid>3219fd64-59e9-4c9a-af1c-ee7638762317</ProjectGuid>
     <ProjectHome>.</ProjectHome>
-    <StartupFile>OCVTest.py</StartupFile>
+    <StartupFile>LinearLeastSquares.py</StartupFile>
     <SearchPath>
     </SearchPath>
     <WorkingDirectory>.</WorkingDirectory>
     <OutputPath>.</OutputPath>
-    <Name>OCVTest</Name>
-    <RootNamespace>OCVTest</RootNamespace>
+    <Name>LinearLeastSquares</Name>
+    <RootNamespace>LinearLeastSquares</RootNamespace>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
     <DebugSymbols>true</DebugSymbols>
@@ -21,10 +21,7 @@
     <EnableUnmanagedDebugging>false</EnableUnmanagedDebugging>
   </PropertyGroup>
   <ItemGroup>
-    <Compile Include="OCVTest.py" />
-  </ItemGroup>
-  <ItemGroup>
-    <Folder Include="Resources\" />
+    <Compile Include="LinearLeastSquares.py" />
   </ItemGroup>
   <Import Project="$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)\Python Tools\Microsoft.PythonTools.targets" />
   <!-- Uncomment the CoreCompile target to enable the Build command in

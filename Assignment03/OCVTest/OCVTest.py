@@ -6,7 +6,7 @@ from matplotlib import pyplot as voPlot
 # voImg = cv2.imread( "Resources/obama1.jpg", 1 ) # 0 for gray, 1 for color
 
 # canny edge detection
-voImg = cv2.imread( "Resources/obama1.jpg" )
+voImg = cv2.imread( "Resources/obama1.jpg", 0 )
 voEdges = cv2.Canny( voImg, 50, 200 )
 
 voPlot.subplot( 121 ), voPlot.imshow( voImg, cmap = 'gray' )

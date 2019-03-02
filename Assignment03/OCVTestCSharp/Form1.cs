@@ -19,23 +19,62 @@ namespace OCVTestCSharp
    {
       public Form1()
       {
-         InitializeComponent();
-
-         pictureBox1.Image = new Bitmap( @"..\..\Resources\Obama1.jpg" );
-         pictureBox3.Image = new Bitmap( @"..\..\Resources\Chessboard.jpg" );
-
-         Image<Bgr, byte> koImg1 = new Image<Bgr, byte >( ( Bitmap )pictureBox1.Image );
-         Image<Bgr, byte> koImg2 = new Image<Bgr, byte >( ( Bitmap )pictureBox3.Image );
-         Image<Bgr, byte> koImg4 = new Image<Bgr, byte >( koImg2.Size );
-         UMat koIn1  = koImg1.ToUMat( );
-         UMat koOut1 = new UMat( );
-
-         CvInvoke.Canny       ( koIn1, koOut1, 150, 50 );
-         CvInvoke.CornerHarris( koImg2, koImg4, 2 ); //, 0.0001, 255.0 );
-         pictureBox2.Image = koOut1.Bitmap;
-         pictureBox4.Image = koImg4.ToBitmap( );        
+         InitializeComponent();    
       }
 
+      private void button1_Click(object sender, EventArgs e)
+      {
+         Bitmap              koBmp = new Bitmap( @"..\..\Resources\Obama1.jpg" );
+         Image< Gray, byte > koImg = new Image< Gray, byte >( koBmp );
+         Image< Gray, byte > koCny = new Image< Gray, byte >( koBmp.Size );
+         double kdCannyThresh     = 120.0;
+         double kdCannyThreshLink = 120.0;
 
+         // Perform Canny Edge Detection
+         CvInvoke.Canny( koImg, koCny, kdCannyThresh, kdCannyThreshLink );
+
+         // Display Original
+         this.pictureBox1.Image = koImg.ToBitmap( );
+
+         // Display Canny Edge
+         this.pictureBox2.Image = koCny.ToBitmap( );
+      }
+
+      private void button2_Click(object sender, EventArgs e)
+      {
+         Bitmap               koBmp = new Bitmap( @"..\..\Resources\Chessboard.jpg" );
+         Image< Gray, byte  > koImg = new Image< Gray, byte  >( koBmp );
+         Image< Gray, float > koHrs = new Image< Gray, float >( koBmp.Size );
+         Image< Gray, float > koInv = new Image< Gray, float >( koBmp.Size );
+         Bitmap               koOut;
+         Bitmap               koRes = new Bitmap( koBmp );
+         Color                koC1;
+
+         // Perform Harris Edge Detection
+         CvInvoke.CornerHarris( koImg, koHrs, 2, 3, 0.04 );
+
+         // Create threshold image
+         CvInvoke.Threshold( koHrs, koInv, 0.0001, 255.0, ThresholdType.BinaryInv );
+
+         // Mark the corners from the original Image as red
+         koOut = koInv.ToBitmap( );
+         for( int kiY = 0 ; kiY < koBmp.Height; kiY++ )
+         {
+            for( int kiX = 0; kiX < koBmp.Width; kiX++ )
+            {
+               koC1 = koOut.GetPixel( kiX, kiY );
+               if( koC1.R == 0 )
+               {
+                  koRes.SetPixel( kiX, kiY, Color.FromArgb( 255, 0, 0 ) );
+               }
+            }
+         }
+
+         // Display Original
+         this.pictureBox1.Image = koBmp; // koImg.ToBitmap( );
+
+         // Display Harris Corner Detection
+         this.pictureBox2.Image = koRes; // koInv.ToBitmap( );
+      }
    }
 }

@@ -31,12 +31,12 @@ namespace OutlierRemoval
             A[ 3, 0 ] += 2 * Shp2[i].Y;
             A[ 3, 1 ] += -2 * Shp2[i].X;
             A[ 3, 2 ] += 0;
-            A[3, 3] += 2; // TODO: Should this be +2?
+            A[ 3, 3 ] += 2;
  
-            B[0, 0] += 2 * Shp1[i].X * Shp2[i].X + 2 * Shp1[i].Y * Shp2[i].Y;   // provide the code for remaining B matrix entries … 
+            B[ 0, 0 ] += 2 * Shp1[i].X * Shp2[i].X + 2 * Shp1[i].Y * Shp2[i].Y;   // provide the code for remaining B matrix entries … 
             B[ 1, 0 ] += ( 2 * Shp1[i].X * Shp2[i].Y ) - ( 2 * Shp2[i].X * Shp1[i].Y );
             B[ 2, 0 ] += 2 * Shp1[i].X;
-            B[3, 0] += 2 * Shp1[i].Y;                              
+            B[ 3, 0 ] += 2 * Shp1[i].Y;                              
          }
          
          Matrix Ainv = A.Inverse;             

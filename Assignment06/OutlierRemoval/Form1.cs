@@ -98,7 +98,7 @@ namespace OutlierRemoval
          int            kiIdx;
          Point          koPt1;
          Point          koPt2;
-         Transformation koTMin = ICPTransformation.ComputeTransformation( koShape1, koShape2 );             ;
+         Transformation koTMin = ICPTransformation.ComputeTransformation( koShape1, koShape2 ); 
          Transformation koT;
          double         kdCostMin = ICPTransformation.ComputeCost( koShape1, koShape2, koTMin );
          double         kdCost;
@@ -148,7 +148,7 @@ namespace OutlierRemoval
          List< Point >  koImg2;
          double         kdError;
 
-         this.mRANSAC( this.voShape2, this.voShape1, this.voShape1.Count - 1, 10000, 100, this.voShape1.Count - 2, out koT, out koIndices, out kdError );
+         this.mRANSAC( this.voShape2, this.voShape1, 2, 10, 100, this.voShape1.Count - 2, out koT, out koIndices, out kdError );
 
          koImg1 = this.mGetPoints( this.voShape1, koIndices );
          koImg2 = this.mGetPoints( this.voShape2, koIndices );
@@ -180,8 +180,8 @@ namespace OutlierRemoval
          double         kdThisError;
          SortedSet< int > koMaybeInliers;
          SortedSet< int > koConsensusSet;
-         List< Point >  koBase;
-         List< Point >  koInput;
+         List< Point >  koImg1;
+         List< Point >  koImg2;
          Transformation koMaybeModel;
          Transformation koBetterModel;
 
@@ -192,35 +192,40 @@ namespace OutlierRemoval
          while( kiIterations < aiK )
          { 
             koMaybeInliers = this.mGetRandom( aiN, aoData.Count );
-            koBase         = this.mGetPoints( aoModel, koMaybeInliers );
-            koInput        = this.mGetPoints( aoData,  koMaybeInliers );
-            koMaybeModel   = ICPTransformation.ComputeTransformation( koBase, koInput );
+            koImg1         = this.mGetPoints( aoModel, koMaybeInliers );
+            koImg2         = this.mGetPoints( aoData,  koMaybeInliers );
+            koMaybeModel   = ICPTransformation.ComputeTransformation( koImg1, koImg2 );
             koConsensusSet = new SortedSet< int >( koMaybeInliers );
 
             // For every point in data 
-            //for( int kiIdx = 0; kiIdx < aoData.Count; kiIdx++ )
-            //{
-            //   // not in maybe_inliers
-            //   if( !koMaybeInliers.Contains( kiIdx ) )
-            //   {
-            //      koBase.Insert( kiIdx, aoModel[ kiIdx ] );
-            //      koInput.Insert( kiIdx, aoData[ kiIdx ] );
-            //      Transformation koT = ICPTransformation.ComputeTransformation( koBase, koInput );
-            //      if( ICPTransformation.ComputeCost( koBase, koInput, koT ) < adT )
-            //      {
-            //         koConsensusSet.Add( kiIdx );
-            //      }      
-            //   }
-            //}
+            for( int kiIdx = 0; kiIdx < aoData.Count; kiIdx++ )
+            {
+               // not in maybe_inliers
+               if( !koMaybeInliers.Contains( kiIdx ) )
+               {
+                  koImg1.Add( aoModel[ kiIdx ] );
+                  koImg2.Add( aoData[ kiIdx ] ); 
+                  Transformation koT = ICPTransformation.ComputeTransformation( koImg1, koImg2 );
+                  if( ICPTransformation.ComputeCost( koImg1, koImg2, koT ) < adT )
+                  {
+                     koConsensusSet.Add( kiIdx );
+                  }
+                  else
+                  {
+                     koImg1.RemoveAt( koImg1.Count - 1 );
+                     koImg2.RemoveAt( koImg2.Count - 1 );
+                  }
+               }
+            }
 
             // if the number of elements in consensus_set is > d
             if( koConsensusSet.Count > aiD )
             { 
                // This implies that we may have found a good model, now test how good it is
-               koBase        = this.mGetPoints( aoModel, koConsensusSet );
-               koInput       = this.mGetPoints( aoData,  koConsensusSet );
-               koBetterModel = ICPTransformation.ComputeTransformation( koBase, koInput );                  
-               kdThisError   = ICPTransformation.ComputeCost( koBase, koInput, koBetterModel );
+               koImg1        = this.mGetPoints( aoModel, koConsensusSet );
+               koImg2        = this.mGetPoints( aoData,  koConsensusSet );
+               koBetterModel = ICPTransformation.ComputeTransformation( koImg1, koImg2 );                  
+               kdThisError   = ICPTransformation.ComputeCost( koImg1, koImg2, koBetterModel );
                if( kdThisError < adBestError )
                { 
                   // We have found a model which is better than any of the previous ones, keep it until a better one is found

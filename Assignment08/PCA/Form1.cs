@@ -17,6 +17,7 @@ namespace PCA
       private Dictionary< string, Matrix >         voMatCov;
       private Dictionary< string, Matrix >         voMatEig;
       private Dictionary< string, Matrix >         voBasVec;
+      private Dictionary< string, List< Matrix > > voSample;
 
       public Form1()
       {
@@ -29,6 +30,7 @@ namespace PCA
          this.mComputeCovariance( );
          this.mComputeEigenMatrix( );
          this.mComputeBasisVector( );
+         this.mComputeSamples( );
       }
 
       private void mReadImages( string aoPath )
@@ -222,6 +224,27 @@ namespace PCA
          foreach( KeyValuePair< string, Matrix > aoPair in this.voMatEig )
          {
             this.voBasVec.Add( aoPair.Key, ( Matrix )( this.voMatAdj[ aoPair.Key ].Multiply( aoPair.Value ) ) );
+         }
+      }
+
+      public void mComputeSamples( )
+      {
+         Matrix aoSample;
+
+         this.voSample = new Dictionary< string, List< Matrix > >( );
+
+         foreach( KeyValuePair< string, List< Matrix > > aoFace in this.voVector )
+         {
+            if( !this.voSample.ContainsKey( aoFace.Key ) )
+            {
+               this.voSample.Add( aoFace.Key, new List< Matrix >( ) );
+            }
+
+            foreach( Matrix aoMat in aoFace.Value )
+            {
+               aoSample = ( Matrix )( ( aoMat.Subtraction( this.voMatAdj[ aoFace.Key ] ).Transpose( ) ).Multiply( this.voBasVec[ aoFace.Key ] ) );
+               this.voSample[ aoFace.Key ].Add( aoSample );
+            }
          }
       }
 

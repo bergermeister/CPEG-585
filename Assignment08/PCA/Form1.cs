@@ -4,7 +4,7 @@ using System.Drawing;
 using System.IO;
 using System.Windows.Forms;
 
-using Mapack;
+using PCALib;
 
 namespace PCA
 {
@@ -15,16 +15,20 @@ namespace PCA
       private Dictionary< string, Matrix >         voMean;
       private Dictionary< string, Matrix >         voMatAdj;
       private Dictionary< string, Matrix >         voMatCov;
+      private Dictionary< string, Matrix >         voMatEig;
+      private Dictionary< string, Matrix >         voBasVec;
 
       public Form1()
       {
          InitializeComponent();
 
-         this.mReadImages( @"Resources\ATTFaceDataSet\Training" );
+         this.mReadImages( @"..\..\Resources\ATTFaceDataSet\Training" );
          this.mVectorizeImages( );
          this.mFindMeanVector( );
          this.mMeanAdjusted( );
          this.mComputeCovariance( );
+         this.mComputeEigenMatrix( );
+         this.mComputeBasisVector( );
       }
 
       private void mReadImages( string aoPath )
@@ -157,12 +161,86 @@ namespace PCA
 
          foreach( KeyValuePair< string, Matrix > koFace in this.voMatAdj )
          {
-            koMatCov = this.voMatAdj[ koFace.Key ].Transpose( ) * this.voMatAdj[ koFace.Key ];
+            koMatCov = ( Matrix )this.voMatAdj[ koFace.Key ].Transpose( ).Multiply( ( IMatrix )this.voMatAdj[ koFace.Key ] );
 
             if( !this.voMatCov.ContainsKey( koFace.Key ) )
             {
                this.voMatCov.Add( koFace.Key, koMatCov );
             }
+         }
+      }
+   
+      private void mComputeEigenMatrix( )
+      {
+         IEigenvalueDecomposition koEigenDecomp;
+         List< KeyValuePair< double, Matrix > > koEigVec;
+         double                                 kdVal;
+         Matrix                                 koMat;
+         int                                    kiRow, kiCol;
+
+         this.voMatEig = new Dictionary< string, Matrix >( );
+
+         foreach( KeyValuePair< string, Matrix > koPair in this.voMatCov )
+         {
+            koEigenDecomp = koPair.Value.GetEigenvalueDecomposition( );
+            koEigVec = new List<KeyValuePair< double, Matrix > >( );
+            for( kiCol = 0; kiCol < koEigenDecomp.RealEigenvalues.Length; kiCol++ )
+            {
+               kdVal = koEigenDecomp.RealEigenvalues[ kiCol ];
+
+               if( kdVal < 0 )
+               {
+                  kdVal = -kdVal;
+               }
+
+               koMat = new Matrix( koEigenDecomp.EigenvectorMatrix.Rows, 1 );
+               for( kiRow = 0; kiRow < koEigenDecomp.EigenvectorMatrix.Rows; kiRow++ )
+               { 
+                  koMat[ kiRow, 0 ] = koEigenDecomp.EigenvectorMatrix[ kiRow, kiCol ];
+               }
+               koEigVec.Add( new KeyValuePair< double, Matrix >( kdVal, koMat ) );
+            }
+
+            koEigVec.Sort( new KeyValuePairComparer( ) );
+            koMat = new Matrix( koEigenDecomp.EigenvectorMatrix.Rows, koEigenDecomp.EigenvectorMatrix.Columns );
+            for( kiCol = 0; kiCol < koEigVec.Count; kiCol++ )
+            {
+               for( kiRow = 0; kiRow < koMat.Rows; kiRow++ )
+               {
+                  koMat[ kiRow, kiCol ] = koEigVec[ kiCol ].Value[ kiRow, 0 ];
+               }
+            }
+
+            this.voMatEig.Add( koPair.Key, koMat );
+         }
+      }
+
+      public void mComputeBasisVector( )
+      {
+         this.voBasVec = new Dictionary< string, Matrix >( );
+
+         foreach( KeyValuePair< string, Matrix > aoPair in this.voMatEig )
+         {
+            this.voBasVec.Add( aoPair.Key, ( Matrix )( this.voMatAdj[ aoPair.Key ].Multiply( aoPair.Value ) ) );
+         }
+      }
+
+      public class KeyValuePairComparer : IComparer< KeyValuePair< double, Matrix > >
+      {
+         public int Compare( KeyValuePair< double, Matrix > aoA, KeyValuePair< double, Matrix > aoB )
+         {
+            int kiStatus = 1;
+
+            if( aoA.Key == aoB.Key )
+            {
+               kiStatus = 0;
+            }
+            else if( aoA.Key < aoB.Key )
+            {
+               kiStatus = -1;
+            }
+
+            return( kiStatus );
          }
       }
    }

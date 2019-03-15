@@ -10,242 +10,140 @@ namespace PCA
 {
    public partial class Form1 : Form
    {
-      private Dictionary< string, List< Bitmap > > voImage;
-      private Dictionary< string, List< Matrix > > voVector;
-      private Dictionary< string, Matrix >         voMean;
-      private Dictionary< string, Matrix >         voMatAdj;
-      private Dictionary< string, Matrix >         voMatCov;
-      private Dictionary< string, Matrix >         voMatEig;
-      private Dictionary< string, Matrix >         voBasVec;
-      private Dictionary< string, List< Matrix > > voSample;
+      private List< Bitmap > voImage;
+      private List< Matrix > voVector;
+      private Matrix         voMean;
+      private Matrix         voMatAdj;
+      private Matrix         voMatCov;
+      private Matrix         voMatEig;
+      private Matrix         voBasVec;
+      private List< Matrix > voSample;
 
       public Form1()
       {
          InitializeComponent();
-
-         this.mReadImages( @"..\..\Resources\ATTFaceDataSet\Training" );
-         this.mVectorizeImages( );
-         this.mFindMeanVector( );
-         this.mMeanAdjusted( );
-         this.mComputeCovariance( );
-         this.mComputeEigenMatrix( );
-         this.mComputeBasisVector( );
-         this.mComputeSamples( );
       }
 
-      private void mReadImages( string aoPath )
+      private List< Bitmap > mReadImages( string aoPath )
       {
-         string koId;
-
-         // Create a new dictionary of training images for each face
-         this.voImage = new Dictionary< string, List< Bitmap > >( );
+         List< Bitmap > koImg = new List< Bitmap >( );
 
          // For each file in the given directory
          foreach( string koFile in Directory.EnumerateFiles( aoPath ) )
          {
-            // Get the Face's ID (Everything before the '_')
-            koId = koFile.Split( '_' )[ 0 ];
-
-            // Add the face ID if it does not exist
-            if( !this.voImage.ContainsKey( koId ) )
-            {
-               this.voImage.Add( koId, new List< Bitmap >( ) );
-            }
-
-            // Add the image to the training dictionary
-            this.voImage[ koId ].Add( new Bitmap( koFile ) );
+            koImg.Add( new Bitmap( koFile ) );
          }
+
+         return( koImg );
       }
 
-      private void mVectorizeImages( )
+      private Matrix mVectorizeImage( Bitmap aoBmp )
       {
-         Matrix koMat;
+         Matrix koMat = new Matrix( aoBmp.Width * aoBmp.Height, 1 );
          Color  koC;
          int    kiX, kiY, kiI;
 
-         // Create a new dictionary of vectorized training data
-         this.voVector = new Dictionary< string, List< Matrix > >( );
-
-         // For each face
-         foreach( KeyValuePair< string, List< Bitmap > > koFace in this.voImage )
-         {
-            // If the vectorized dictionary does not contain the face
-            if( !this.voVector.ContainsKey( koFace.Key ) )
+         kiI = 0;
+         for( kiY = 0; kiY < aoBmp.Height; kiY++ )
+         { 
+            for( kiX = 0; kiX < aoBmp.Width; kiX++ )
             {
-               this.voVector.Add( koFace.Key, new List< Matrix >( ) );
-            }
+               // Obtain the pixel color
+               koC = aoBmp.GetPixel( kiX, kiY );
 
-            // For each training image
-            foreach( Bitmap koBmp in koFace.Value )
-            {
-               // Create a new matrix to store the vectorized data
-               koMat = new Matrix( koBmp.Width * koBmp.Height, 1 );
+               // Store the pixel color as grayscale
+               koMat[ kiI, 0 ] = ( ( 0.299 * koC.R ) + ( 0.587 * koC.G ) + ( 0.114 * koC.B ) );
 
-               kiI = 0;
-               for( kiY = 0; kiY < koBmp.Height; kiY++ )
-               { 
-                  for( kiX = 0; kiX < koBmp.Width; kiX++ )
-                  {
-                     // Obtain the pixel color
-                     koC = koBmp.GetPixel( kiX, kiY );
-
-                     // Store the pixel color as grayscale
-                     koMat[ kiI, 0 ] = ( ( 0.299 * koC.R ) + ( 0.587 * koC.G ) + ( 0.114 * koC.B ) );
-                  }
-               }
-
-               // Store the Matrix
-               this.voVector[ koFace.Key ].Add( koMat );
+               kiI++;
             }
          }
+       
+         return( koMat );
       }
 
-      private void mFindMeanVector()
+      private Matrix mFindMeanVector( List< Matrix > aoSample )
       {
-         int kiI;
-         Matrix koMean;
+         Matrix koMean = new Matrix( aoSample[ 0 ].Rows, aoSample[ 0 ].Columns );
+         int    kiRow;
 
-         this.voMean = new Dictionary< string, Matrix >( );
-
-         foreach( KeyValuePair< string, List< Matrix > > koFace in this.voVector )
+         foreach( Matrix koMat in this.voVector )
          {
-            if( !this.voMean.ContainsKey( koFace.Key ) )
+            for( kiRow = 0; kiRow < koMat.Rows; kiRow++ )
             {
-               this.voMean.Add( koFace.Key, new Matrix( koFace.Value[ 0 ].Rows, 1 ) );
-            }  
-
-            koMean = this.voMean[ koFace.Key ];
-
-            foreach( Matrix koVector in koFace.Value )
-            {
-               for( kiI = 0; kiI < koVector.Rows; kiI++ )
-               {
-                  koMean[ kiI, 0 ] += ( koVector[ kiI, 0 ] / koFace.Value.Count );
-               }
+               koMean[ kiRow, 0 ] += ( koMat[ kiRow, 0 ] / this.voVector.Count );
             }
          }
+
+         return( koMean );
       }
 
-      private void mMeanAdjusted( )
+      private Matrix mMeanAdjusted( List< Matrix > aoSample, Matrix aoMean )
       {
-         Matrix koMean;
-         Matrix koAdjust;
+         Matrix koAdj = new Matrix( aoSample[ 0 ].Rows, aoSample.Count );
          int    kiCol, kiRow;
 
-         this.voMatAdj = new Dictionary< string, Matrix >( );
-
-         foreach( KeyValuePair< string, List< Matrix > > koFace in this.voVector )
+         for( kiCol = 0; kiCol < aoSample.Count; kiCol++ )
          {
-            if( !this.voMatAdj.ContainsKey( koFace.Key ) )
+            for( kiRow = 0; kiRow < aoSample[ kiCol ].Rows; kiRow++ )
             {
-               this.voMatAdj.Add( koFace.Key, new Matrix( koFace.Value[ 0 ].Rows, koFace.Value.Count ) );
-            }
-
-            koMean   = this.voMean[ koFace.Key ];
-            koAdjust = this.voMatAdj[ koFace.Key ];
-            for( kiCol = 0; kiCol < koFace.Value.Count; kiCol++ )
-            {
-               for( kiRow = 0; kiRow < koFace.Value[ kiCol ].Rows; kiRow++ )
-               {
-                  koAdjust[ kiRow, kiCol ] = koFace.Value[ kiCol ][ kiRow, 0 ] - koMean[ kiRow, 0 ];
-               }
+               koAdj[ kiRow, kiCol ] = aoSample[ kiCol ][ kiRow, 0 ] - aoMean[ kiRow, 0 ];
             }
          }
+
+         return( koAdj );
       }
-
-      private void mComputeCovariance( )
+  
+      private Matrix mComputeEigenMatrix( Matrix aoCov, int aiFaces )
       {
-         Matrix koMatCov;
-         Matrix koSi, koSj;
-         int    kiI, kiJ;
-
-         this.voMatCov = new Dictionary< string, Matrix >( );
-
-         foreach( KeyValuePair< string, Matrix > koFace in this.voMatAdj )
-         {
-            koMatCov = ( Matrix )this.voMatAdj[ koFace.Key ].Transpose( ).Multiply( ( IMatrix )this.voMatAdj[ koFace.Key ] );
-
-            if( !this.voMatCov.ContainsKey( koFace.Key ) )
-            {
-               this.voMatCov.Add( koFace.Key, koMatCov );
-            }
-         }
-      }
-   
-      private void mComputeEigenMatrix( )
-      {
-         IEigenvalueDecomposition koEigenDecomp;
+         IEigenvalueDecomposition               koEigenDecomp;
          List< KeyValuePair< double, Matrix > > koEigVec;
          double                                 kdVal;
          Matrix                                 koMat;
+         Matrix                                 koMatEig;
          int                                    kiRow, kiCol;
 
-         this.voMatEig = new Dictionary< string, Matrix >( );
-
-         foreach( KeyValuePair< string, Matrix > koPair in this.voMatCov )
+         koEigenDecomp = aoCov.GetEigenvalueDecomposition( );
+         koEigVec = new List<KeyValuePair< double, Matrix > >( );
+         for( kiCol = 0; kiCol < koEigenDecomp.RealEigenvalues.Length; kiCol++ )
          {
-            koEigenDecomp = koPair.Value.GetEigenvalueDecomposition( );
-            koEigVec = new List<KeyValuePair< double, Matrix > >( );
-            for( kiCol = 0; kiCol < koEigenDecomp.RealEigenvalues.Length; kiCol++ )
+            kdVal = koEigenDecomp.RealEigenvalues[ kiCol ];
+
+            if( kdVal < 0 )
             {
-               kdVal = koEigenDecomp.RealEigenvalues[ kiCol ];
-
-               if( kdVal < 0 )
-               {
-                  kdVal = -kdVal;
-               }
-
-               koMat = new Matrix( koEigenDecomp.EigenvectorMatrix.Rows, 1 );
-               for( kiRow = 0; kiRow < koEigenDecomp.EigenvectorMatrix.Rows; kiRow++ )
-               { 
-                  koMat[ kiRow, 0 ] = koEigenDecomp.EigenvectorMatrix[ kiRow, kiCol ];
-               }
-               koEigVec.Add( new KeyValuePair< double, Matrix >( kdVal, koMat ) );
+               kdVal = -kdVal;
             }
 
-            koEigVec.Sort( new KeyValuePairComparer( ) );
-            koMat = new Matrix( koEigenDecomp.EigenvectorMatrix.Rows, koEigenDecomp.EigenvectorMatrix.Columns );
-            for( kiCol = 0; kiCol < koEigVec.Count; kiCol++ )
-            {
-               for( kiRow = 0; kiRow < koMat.Rows; kiRow++ )
-               {
-                  koMat[ kiRow, kiCol ] = koEigVec[ kiCol ].Value[ kiRow, 0 ];
-               }
-            }
-
-            this.voMatEig.Add( koPair.Key, koMat );
+            koMatEig = ( Matrix )koEigenDecomp.EigenvectorMatrix;
+            koMat    = ( Matrix )koMatEig.Submatrix( 0, koMatEig.Rows - 1, kiCol, kiCol );
+            koEigVec.Add( new KeyValuePair< double, Matrix >( kdVal, koMat ) );
          }
+
+         koEigVec.Sort( new KeyValuePairComparer( ) );
+         koMat = new Matrix( koEigenDecomp.EigenvectorMatrix.Rows, aiFaces );
+         for( kiCol = 0; kiCol < aiFaces; kiCol++ )
+         {
+            for( kiRow = 0; kiRow < koMat.Rows; kiRow++ )
+            {
+               koMat[ kiRow, kiCol ] = koEigVec[ koEigVec.Count - kiCol - 1 ].Value[ kiRow, 0 ];
+            }
+         }
+
+         return( koMat );
       }
 
-      public void mComputeBasisVector( )
+      private double mEuclideanDistance( Matrix aoVec1, Matrix aoVec2 )
       {
-         this.voBasVec = new Dictionary< string, Matrix >( );
+         double kdDist = 0.0;
+         int    kiCol;
 
-         foreach( KeyValuePair< string, Matrix > aoPair in this.voMatEig )
+         for( kiCol = 0; kiCol < aoVec1.Columns; kiCol++ )
          {
-            this.voBasVec.Add( aoPair.Key, ( Matrix )( this.voMatAdj[ aoPair.Key ].Multiply( aoPair.Value ) ) );
+            kdDist += ( aoVec1[ 0, kiCol ] - aoVec2[ 0, kiCol ] ) * ( aoVec1[ 0, kiCol ] - aoVec2[ 0, kiCol ] );
          }
-      }
 
-      public void mComputeSamples( )
-      {
-         Matrix aoSample;
+         kdDist = Math.Sqrt( kdDist );
 
-         this.voSample = new Dictionary< string, List< Matrix > >( );
-
-         foreach( KeyValuePair< string, List< Matrix > > aoFace in this.voVector )
-         {
-            if( !this.voSample.ContainsKey( aoFace.Key ) )
-            {
-               this.voSample.Add( aoFace.Key, new List< Matrix >( ) );
-            }
-
-            foreach( Matrix aoMat in aoFace.Value )
-            {
-               aoSample = ( Matrix )( ( aoMat.Subtraction( this.voMatAdj[ aoFace.Key ] ).Transpose( ) ).Multiply( this.voBasVec[ aoFace.Key ] ) );
-               this.voSample[ aoFace.Key ].Add( aoSample );
-            }
-         }
+         return( kdDist );
       }
 
       public class KeyValuePairComparer : IComparer< KeyValuePair< double, Matrix > >
@@ -264,6 +162,104 @@ namespace PCA
             }
 
             return( kiStatus );
+         }
+      }
+
+      private void button1_Click(object sender, EventArgs e)
+      {
+         OpenFileDialog koDlg = new OpenFileDialog( );
+         Bitmap         koBmp;
+
+         //txt files (*.txt)|*.txt|All files (*.*)|*.*
+         koDlg .Filter = "JPEG|*.jpg|Bitmap Files|*.bmp";
+         koDlg.Title   = "Select an Image File";
+
+         // Show the Dialog
+         if( koDlg.ShowDialog( ) == System.Windows.Forms.DialogResult.OK )
+         {
+            koBmp = new Bitmap( koDlg.FileName );
+            this.pictureBox1.Image = koBmp;
+         }
+      }
+
+      private void button2_Click(object sender, EventArgs e)
+      {
+         Bitmap koBmp = ( Bitmap )this.pictureBox1.Image;
+         Matrix koMat;
+         Matrix koEig;
+         Matrix koSub;
+         int    kiCol;
+         double kdDistMin = Double.MaxValue;
+         double kdDistCur;
+         int    kiIdx = -1;
+
+         // Create a new matrix to store the vectorized data
+         koMat = this.mVectorizeImage( koBmp );
+
+         for( kiCol = 0; kiCol < this.voVector.Count; kiCol++ )
+         {
+            // koSub = ( Matrix )koMat.Subtraction( this.voMean ); 
+            koSub = ( Matrix )this.voMatAdj.Submatrix( 0, this.voMatAdj.Rows - 1, kiCol, kiCol );
+            koEig = ( Matrix )koMat.Subtraction( koSub ).Transpose( ).Multiply( this.voBasVec );
+            kdDistCur = this.mEuclideanDistance( koEig, this.voSample[ kiCol ] );
+            if( kdDistCur < kdDistMin )
+            {
+               kdDistMin = kdDistCur;
+               kiIdx     = kiCol;
+            }
+         }
+
+         this.pictureBox2.Image = this.voImage[ kiIdx ];
+         this.textBox2.Text     = kdDistMin.ToString( );
+      }
+
+      private void button3_Click(object sender, EventArgs e)
+      {
+         int    kiFaces;
+         int    kiCol;
+         Matrix koMat;
+         Matrix koSub;
+
+         if( Int32.TryParse( this.textBox1.Text.ToString( ), out kiFaces ) )
+         {  
+            // Create a new dictionary of training images for each face
+            this.voImage = this.mReadImages( @"..\..\Resources\ATTFaceDataSet\Training" );
+
+            // Vectorize the imgages
+            this.voVector = new List< Matrix >( ); 
+            foreach( Bitmap koBmp in this.voImage )
+            {
+               this.voVector.Add( this.mVectorizeImage( koBmp ) );
+            }
+
+            // Find the Mean Vector
+            this.voMean = this.mFindMeanVector( this.voVector );
+
+            // Calculate the Mean Adjusted Vectors
+            this.voMatAdj = this.mMeanAdjusted( this.voVector, this.voMean );
+
+            // Calculate Covariant Matrix
+            this.voMatCov = ( Matrix )this.voMatAdj.Transpose( ).Multiply( this.voMatAdj );
+
+            // Calculate Eigen Matrix
+            this.voMatEig = this.mComputeEigenMatrix( this.voMatCov, kiFaces );
+
+            // Calculate Base Vectors
+            this.voBasVec = ( Matrix )( this.voMatAdj.Multiply( this.voMatEig ) );
+
+            // Calculate samples
+            this.voSample = new List< Matrix >( );
+            for( kiCol = 0; kiCol < this.voVector.Count; kiCol++ )
+            {
+               // koSub = ( Matrix )this.voVector[ kiCol ].Subtraction( this.voMean ); 
+               koSub = ( Matrix )this.voMatAdj.Submatrix( 0, this.voMatAdj.Rows - 1, kiCol, kiCol );
+               koMat = ( Matrix )this.voVector[ kiCol ].Subtraction( koSub ).Transpose( ).Multiply( this.voBasVec );
+               this.voSample.Add( koMat );
+            }
+         }
+         else
+         {
+            MessageBox.Show( "Please enter a number" );
          }
       }
    }

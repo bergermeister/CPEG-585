@@ -141,7 +141,7 @@ namespace PCA
             kdDist += ( aoVec1[ 0, kiCol ] - aoVec2[ 0, kiCol ] ) * ( aoVec1[ 0, kiCol ] - aoVec2[ 0, kiCol ] );
          }
 
-         kdDist = Math.Sqrt( kdDist );
+         kdDist = Math.Sqrt( kdDist ) / aoVec1.Columns;
 
          return( kdDist );
       }

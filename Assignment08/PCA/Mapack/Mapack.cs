@@ -5,7 +5,7 @@
 
 //[assembly: System.Reflection.AssemblyVersion("1.0.9.0")]
 
-namespace PCALib
+namespace FaceRecogPCA
 {
 	using System;
 	using System.Text;

@@ -4,12 +4,13 @@ using System.Drawing;
 using System.IO;
 using System.Windows.Forms;
 
-using PCALib;
 
 namespace PCA
 {
    public partial class Form1 : Form
    {
+      private int viCountEF;
+
       private List< Bitmap > voImage;
       private List< Matrix > voVector;
       private Matrix         voMean;
@@ -178,13 +179,13 @@ namespace PCA
          if( koDlg.ShowDialog( ) == System.Windows.Forms.DialogResult.OK )
          {
             koBmp = new Bitmap( koDlg.FileName );
-            this.pictureBox1.Image = koBmp;
+            this.voImgChk.Image = koBmp;
          }
       }
 
       private void button2_Click(object sender, EventArgs e)
       {
-         Bitmap koBmp = ( Bitmap )this.pictureBox1.Image;
+         Bitmap koBmp = ( Bitmap )this.voImgChk.Image;
          Matrix koMat;
          Matrix koEig;
          Matrix koSub;
@@ -209,7 +210,7 @@ namespace PCA
             }
          }
 
-         this.pictureBox2.Image = this.voImage[ kiIdx ];
+         this.voImgMatch1.Image = this.voImage[ kiIdx ];
          this.textBox2.Text     = kdDistMin.ToString( );
       }
 
@@ -261,6 +262,23 @@ namespace PCA
          {
             MessageBox.Show( "Please enter a number" );
          }
+      }
+
+      private void voBtnCalcEF_Click(object sender, EventArgs e)
+      {
+         int kiCountEf = this.viCountEF;
+
+         /// -# Read the number of Eigen Faces
+         if( Int32.TryParse( this.voTbEFCount.Text, out kiCountEf ) )
+         {
+            this.viCountEF = kiCountEf;
+         }
+         else
+         {
+            this.voTbEFCount.Text = this.viCountEF.ToString( );
+         }
+
+
       }
    }
 }

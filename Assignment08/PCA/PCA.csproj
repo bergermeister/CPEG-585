@@ -53,10 +53,13 @@
       <DependentUpon>Form1.cs</DependentUpon>
     </Compile>
     <Compile Include="Mapack\Mapack.cs" />
+    <Compile Include="NEigen\TcFace.cs" />
+    <Compile Include="NEigen\TcVector.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="TcFaceRecog.cs" />
     <Compile Include="TcImage.cs" />
+    <Compile Include="TcMatch.cs" />
     <EmbeddedResource Include="Form1.resx">
       <DependentUpon>Form1.cs</DependentUpon>
     </EmbeddedResource>

@@ -11,7 +11,7 @@ namespace LDA
    public class TcClass : List< TcSample >
    {
       private string    voId;
-      private double[ ] vdMean;    /**< Mean Vectors */
+      private double[ ] vdMean;  /**< Mean Vectors */ 
 
       public TcClass( string aoId )
       {
@@ -34,6 +34,8 @@ namespace LDA
 
          /// -# Initialize the mean vector
          this.vdMean = new double[ this[ 0 ].ViLength ];
+
+         /// -# Initialize Matrix of Samples
 
          /// -# Zero out the mean vector
          for( kiI = 0; kiI < this.vdMean.Length; kiI++ )

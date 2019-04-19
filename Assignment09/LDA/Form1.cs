@@ -10,19 +10,15 @@ namespace LDA
 {
    public partial class Form1 : Form
    {
+      private const string voPath = @"..\..\..\..\ATTFaceDataSet\Training";
+      private TcFaceRecog  voFR;
+
       public Form1()
       {
          InitializeComponent();
 
-         this.MTest( );
-      }
-
-      public void MTest( )
-      {
-         string koPath = @"..\..\..\..\ATTFaceDataSet\Training";
-         TcFaceRecog koFR = new TcFaceRecog( koPath, 100 );
-         koFR.MTrain( );
-
+         this.voFR = new TcFaceRecog( voPath, 100 );
+         this.voFR.MTrain( );
       }
    }
 }

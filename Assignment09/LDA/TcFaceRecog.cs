@@ -9,6 +9,9 @@ namespace LDA
    public class TcFaceRecog
    {
       private string                        voPath;
+      private PCA.TcPCA                     voPCA;
+
+
       private int                           viEc;     /**< Number of Eigen Values to keep */
       private int                           viN;      /**< Size of a sample */
       private Dictionary< string, TcClass > voClass;  /**< Dictionary of classes */
@@ -16,6 +19,8 @@ namespace LDA
       private Matrix                        voSb;     /**< Between-class Scatter Matrix */
       private Matrix                        voSw;     /**< Within-class Scatter Matrix */
       private Matrix                        voMb;     /**< Overall Mean */
+      private Matrix                        voW;      /**< Projection (Eigen Vector) Matrix */
+      private Matrix                        voY;      /**< Projected Vectors */
 
       public TcFaceRecog( string aoPath, int kiEc )
       {
@@ -34,7 +39,11 @@ namespace LDA
          /// -# Empty the dictionary of classes
          this.voClass.Clear( );
 
-         /// -# Read in all training images
+         /// -# Run PCA to reduce dimensionality
+         this.voPCA = new PCA.TcPCA( this.voPath, 40 );
+         this.voPCA.MTrain( );
+
+         /// -# Read in all training images from PCA
          this.mReadImages( );
 
          /// -# Initialize the scatter matrices and overall mean vector
@@ -43,36 +52,36 @@ namespace LDA
          /// -# Compute the mean vectors
          this.mComputeMeanVectors( );
 
+         /// -# Compute Scatter Matrices
+         this.mComputeScatterMatrics( );
+
          /// -# Compute the Eigen Values and Vectors
          this.mComputeEigenValues( );
+
+         /// -# Build Projection Matrix (W)
+         this.mSelectLinearDiscriminants( );
       }
 
       private void mReadImages( )
       {
-         FileInfo koInfo;
-         string   koId = string.Empty;
-
-         /// For each file in the path:
-         foreach( string koFile in Directory.EnumerateFiles( this.voPath ) )
+         /// For each PCA Image:
+         foreach( PCA.TcImage koImg in this.voPCA.VoImages )
          {
-            /// -# Obtain the file information
-            koInfo = new FileInfo( koFile );
-
-            /// -# Parse the first 3 characters of the file name as the class identifier
-            koId = koInfo.Name.Substring( 0, 3 );
-
-            /// -# If the class is not in the dictionary, create one and add it
-            if( !this.voClass.ContainsKey( koId ) )
+            /// -# If the Image is part of a new class, create a new class
+            if( !this.voClass.ContainsKey( koImg.VoId ) )
             {
-               this.voClass.Add( koId, new TcClass( koId ) );
+               this.voClass.Add( koImg.VoId, new TcClass( koImg.VoId ) );
             }
 
-            /// -# Add the file as a new sample image to the class
-            this.voClass[ koId ].Add( new TcSampleImage( koInfo.FullName ) );
+            /// -# Add the PCA Image's Projection Onto Reduced Dimension Vector as a sample
+            this.voClass[ koImg.VoId ].Add( new TcSample( koImg.VdVecFSV ) );
+
+            /// -# Record the length of a sample
+            this.viN = koImg.VdVecFSV.Length;
          }
 
-         /// -# Record the length of a sample
-         this.viN = voClass[ koId ][ 0 ].ViLength;
+         /// -# Ec = Number of Classes - 1
+         this.viEc = voClass.Count - 1;
       }
 
       private void mInitMatrices( )
@@ -95,7 +104,7 @@ namespace LDA
             koC.MCalculateMeanVector( );
 
             /// -# Add each Mean Vector to the overall Mean Vector
-            voMb = ( Matrix )voMb.Addition( koC.MGetMean( ) );
+            this.voMb = ( Matrix )voMb.Addition( koC.MGetMean( ) );
          }
 
          /// -# Divide the overall mean vector by the number of classes
@@ -105,7 +114,7 @@ namespace LDA
       private void mComputeScatterMatrics( )
       {
          int    kiI;
-         Matrix koSi; // Class Scatter Matrix
+         Matrix koSi; // Covariance Matrix of a class
          Matrix koMc; // Class Mean Vector
 
          /// For each class:
@@ -119,16 +128,13 @@ namespace LDA
                /// -# Subtract the Class Mean Vector from each Sample and store it in a tempory Vector
                koSi = ( Matrix )koC.MGetSample( kiI ).Subtraction( koMc );
 
-               /// -# Multiply the temporary Vector by the transpose of the temporary Vector to get the class Scatter Matrix
+               /// -# Multiply the temporary Vector by the transpose of the temporary Vector to get the Covariance Matrix
                koSi = ( Matrix )koSi.Multiply( koSi.Transpose( ) );
 
                /// -# Add the class Scatter Matrix to the Within-class Scatter Matrix
                this.voSw = ( Matrix )voSw.Addition( koSi );
             }
          }
-
-         /// -# TODO: Take the Inverse here for later use
-         this.voSw = ( Matrix )this.voSw.Inverse;
 
          /// -# For each class:
          foreach( TcClass koC in voClass.Values )
@@ -138,7 +144,7 @@ namespace LDA
 
             /// -# Multiply the adjusted Mean Vector by the Transpose of the adjusted Mean Vector, and
             ///    add it to the Between Class Scatter Matrix
-            voSb = ( Matrix )voSb.Addition( koMc.Multiply( koMc.Transpose( ) ) ).Multiply( koMc.Rows );
+            voSb = ( Matrix )voSb.Addition( koMc.Multiply( koMc.Transpose( ) ) ).Multiply( koC.Count );
          }
       }
 
@@ -152,7 +158,7 @@ namespace LDA
          int                      kiR, kiC;
 
          /// -# Calculate the Eigen Decomposition for (Sw^-1)(Sb)
-         koRes = ( Matrix )voSw.Multiply( voSb );
+         koRes = ( Matrix )this.voSw.Inverse.Multiply( voSb );
          koEDecomp = koRes.GetEigenvalueDecomposition( );
 
          /// -# Obtain the Eigen Vector Matrix
@@ -167,6 +173,7 @@ namespace LDA
          /// -# Create empty eigen vector
          kdEVec = new double[ voSb.Columns ];
          
+         /// -# Add the eigen vectors to the list of eigen vectors
          for( kiC = 0; kiC < voSb.Columns; kiC++ )
          {
             for( kiR = 0; kiR < voSb.Rows; kiR++ )
@@ -176,17 +183,29 @@ namespace LDA
             this.voEV.Add( new TcVector( kdEVal[ kiC ], kdEVec, voSb.Columns ) );
          }
 
+         /// -# Sort the Eigen Vector lsit
          this.voEV.Sort( );
       }
 
       private void mSelectLinearDiscriminants( )
       {
+         int kiR, kiC;
 
+         /// -# Create the Eigen Vector Matrix
+         this.voW = new Matrix( this.voSb.Rows, this.viEc );
+         for( kiC = 0; kiC < this.viEc; kiC++ )
+         {
+            for( kiR = 0; kiR < this.voEV[ kiC ].VdData.Length; kiR++ )
+            {
+               this.voW[ kiR, kiC ] = this.voEV[ kiC ].VdData[ kiR ];
+            }
+         }
       }
 
-      private void mTrasnformOntoSubspace( )
+      private void mProject( )
       {
-
+         ///Matrix koX = new Matrix(  
+         ///Y = W.T * X
       }
    }
 }

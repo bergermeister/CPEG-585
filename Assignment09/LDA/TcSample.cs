@@ -16,6 +16,11 @@ namespace LDA
          this.vdData = new double[ aiLength ];
       }
 
+      public TcSample( double[ ] adData )
+      {
+         this.vdData = adData;
+      }
+
       public double this[int aiIndex]
       {
          get{ return( this.vdData[ aiIndex ] ); }

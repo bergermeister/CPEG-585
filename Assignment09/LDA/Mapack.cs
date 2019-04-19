@@ -9,6 +9,8 @@ namespace FaceRecogPCA
 {
 	using System;
 	using System.Text;
+   using System.Threading;
+   using System.Threading.Tasks;
 
 	/// <summary>Matrix provides the fundamental operations of numerical linear algebra.</summary>
 	public interface IMatrix
@@ -545,7 +547,8 @@ namespace FaceRecogPCA
 	
 			int size = this.columns;
 			double[] column = new double[size];
-			for (int j = 0; j < columns; j++)
+         Parallel.For( 0, columns, ( j ) =>
+			//for (int j = 0; j < columns; j++)
 			{
 				for (int k = 0; k < size; k++)
 					column[k] = B[k,j];
@@ -557,7 +560,7 @@ namespace FaceRecogPCA
 						s += row[k] * column[k];
 					x[i][j] = s;
 				} 
-			}
+			});
 	
 			return X;
 		}

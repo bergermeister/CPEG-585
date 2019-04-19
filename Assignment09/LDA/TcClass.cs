@@ -8,7 +8,7 @@ using FaceRecogPCA;
 
 namespace LDA
 {
-   public class TcClass : List<TcSample>
+   public class TcClass : List< TcSample >
    {
       private string    voId;
       private double[ ] vdMean;    /**< Mean Vectors */
@@ -28,12 +28,18 @@ namespace LDA
          get{ return( this.vdMean ); }
       }
 
-      public void MCalculateMeanVectors( )
+      public void MCalculateMeanVector( )
       {
          int kiI;
 
          /// -# Initialize the mean vector
          this.vdMean = new double[ this[ 0 ].ViLength ];
+
+         /// -# Zero out the mean vector
+         for( kiI = 0; kiI < this.vdMean.Length; kiI++ )
+         {
+            this.vdMean[ kiI ] = 0.0;
+         }
 
          /// -# Add all linearized sample data into the mean vector
          foreach( TcSample koS in this )

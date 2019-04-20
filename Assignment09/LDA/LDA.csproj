@@ -51,18 +51,22 @@
     <Compile Include="Form1.Designer.cs">
       <DependentUpon>Form1.cs</DependentUpon>
     </Compile>
+    <Compile Include="LDA\TcClass.cs" />
+    <Compile Include="LDA\TcLDA.cs" />
+    <Compile Include="LDA\TcSample.cs" />
+    <Compile Include="LDA\TcSampleImage.cs" />
     <Compile Include="Mapack.cs" />
     <Compile Include="NEigen\TcFace.cs" />
     <Compile Include="NEigen\TcVector.cs" />
     <Compile Include="PCA\TcPCA.cs" />
-    <Compile Include="PCA\TcImage.cs" />
-    <Compile Include="PCA\TcMatch.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="TcClass.cs" />
     <Compile Include="TcFaceRecog.cs" />
-    <Compile Include="TcSample.cs" />
-    <Compile Include="TcSampleImage.cs" />
+    <Compile Include="TcImage.cs" />
+    <Compile Include="TcMatch.cs" />
+    <EmbeddedResource Include="Form1.resx">
+      <DependentUpon>Form1.cs</DependentUpon>
+    </EmbeddedResource>
     <EmbeddedResource Include="Properties\Resources.resx">
       <Generator>ResXFileCodeGenerator</Generator>
       <LastGenOutput>Resources.Designer.cs</LastGenOutput>

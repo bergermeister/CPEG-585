@@ -1,8 +1,7 @@
-﻿using System;
-using System.Drawing;
-
-namespace LDA
+﻿namespace LDA.LDA
 {
+   using System.Drawing;
+
    public class TcSampleImage : TcSample
    {
       private string voPath;

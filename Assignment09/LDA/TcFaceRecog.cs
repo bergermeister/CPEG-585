@@ -1,211 +1,117 @@
-﻿using System.Collections.Generic;
-using System.IO;
-
-using FaceRecogPCA;
-using LDA.NEigen;
-
-namespace LDA
+﻿namespace LDA
 {
+   using System.Collections.Generic;
+   using System.IO;
+
    public class TcFaceRecog
    {
-      private string                        voPath;
-      private PCA.TcPCA                     voPCA;
+      private string                            voPath;
+      private int                               voSampleSize;
+      private PCA.TcPCA                         voPCA;
+      private LDA.TcLDA                         voLDA;
+      private List< TcImage >                   voImages;
+      private Dictionary< string, LDA.TcClass > voClasses;
 
-
-      private int                           viEc;     /**< Number of Eigen Values to keep */
-      private int                           viN;      /**< Size of a sample */
-      private Dictionary< string, TcClass > voClass;  /**< Dictionary of classes */
-      private List< TcVector >              voEV;     /**< List of Eigen Vectors */ 
-      private Matrix                        voSb;     /**< Between-class Scatter Matrix */
-      private Matrix                        voSw;     /**< Within-class Scatter Matrix */
-      private Matrix                        voMb;     /**< Overall Mean */
-      private Matrix                        voW;      /**< Projection (Eigen Vector) Matrix */
-      private Matrix                        voY;      /**< Projected Vectors */
-
-      public TcFaceRecog( string aoPath, int kiEc )
+      public TcFaceRecog( string aoPath )
       {
          /// -# Record the path
          this.voPath = aoPath;
+      }
 
-         /// -# Record the number of Eigen Values to use
-         this.viEc = kiEc;
+      public PCA.TcPCA VoPCA
+      {
+         get{ return( this.voPCA ); }
+      }
 
-         /// -# Initialize the dictionary of classes
-         this.voClass = new Dictionary< string, TcClass >( );
+      public LDA.TcLDA VoLDA
+      {
+         get{ return( this.voLDA ); }
+      }
+
+      public List< TcImage > VoImages
+      {
+         get{ return( this.voImages ); }
+      }
+
+      public Dictionary< string, LDA.TcClass > VoClasses
+      {
+         get{ return( this.voClasses ); }
       }
 
       public void MTrain( )
       {
-         /// -# Empty the dictionary of classes
-         this.voClass.Clear( );
-
-         /// -# Run PCA to reduce dimensionality
-         this.voPCA = new PCA.TcPCA( this.voPath, 40 );
-         this.voPCA.MTrain( );
-
-         /// -# Read in all training images from PCA
+         /// -# Read in the images and initialize class dictionary
          this.mReadImages( );
 
-         /// -# Initialize the scatter matrices and overall mean vector
-         this.mInitMatrices( );
+         /// -# Execute PCA on the image set
+         this.mExecPCA( );
 
-         /// -# Compute the mean vectors
-         this.mComputeMeanVectors( );
-
-         /// -# Compute Scatter Matrices
-         this.mComputeScatterMatrics( );
-
-         /// -# Compute the Eigen Values and Vectors
-         this.mComputeEigenValues( );
-
-         /// -# Build Projection Matrix (W)
-         this.mSelectLinearDiscriminants( );
+         /// -# Execute LDA on the class set
+         this.mExecLDA( );
       }
 
       private void mReadImages( )
       {
-         /// For each PCA Image:
-         foreach( PCA.TcImage koImg in this.voPCA.VoImages )
+         TcImage koImg;
+
+         /// -# Create a new list of images and dictionary of classes
+         this.voImages  = new List< TcImage >( );
+         this.voClasses = new Dictionary< string, LDA.TcClass >( );
+
+         /// -# Iterate through the files in the directory 
+         foreach( string koFilename in Directory.EnumerateFiles( this.voPath ) )
          {
-            /// -# If the Image is part of a new class, create a new class
-            if( !this.voClass.ContainsKey( koImg.VoId ) )
+            /// -# Create a new Image object from the file
+            koImg = new TcImage( koFilename );
+
+            /// -# Add the image to the list of images
+            this.voImages.Add( koImg );
+
+            /// -# If the image belongs to a new class, create a new class in the dictionary
+            if( !this.voClasses.ContainsKey( koImg.VoId ) )
             {
-               this.voClass.Add( koImg.VoId, new TcClass( koImg.VoId ) );
+               this.voClasses.Add( koImg.VoId, new LDA.TcClass( koImg.VoId ) );
             }
 
-            /// -# Add the PCA Image's Projection Onto Reduced Dimension Vector as a sample
-            this.voClass[ koImg.VoId ].Add( new TcSample( koImg.VdVecFSV ) );
-
-            /// -# Record the length of a sample
-            this.viN = koImg.VdVecFSV.Length;
-         }
-
-         /// -# Ec = Number of Classes - 1
-         this.viEc = voClass.Count - 1;
-      }
-
-      private void mInitMatrices( )
-      {
-         /// -# Create an empty Within-Class Scatter Matrix (Sw)
-         this.voSw = new Matrix( this.viN, this.viN );
-
-         /// -# Create an empty Between-Class Scatter Matrix (Sb)
-         this.voSb = new Matrix( this.viN, this.viN );
-
-         /// -# Create an empty Overall Mean Vector
-         this.voMb = new Matrix( this.viN, 1 );
-      }
-
-      private void mComputeMeanVectors( )
-      {
-         foreach( TcClass koC in voClass.Values )
-         {
-            /// -# Calculate the Mean Vector for each class
-            koC.MCalculateMeanVector( );
-
-            /// -# Add each Mean Vector to the overall Mean Vector
-            this.voMb = ( Matrix )voMb.Addition( koC.MGetMean( ) );
-         }
-
-         /// -# Divide the overall mean vector by the number of classes
-         this.voMb.Multiply( 1.0 / voClass.Count );
-      }
-
-      private void mComputeScatterMatrics( )
-      {
-         int    kiI;
-         Matrix koSi; // Covariance Matrix of a class
-         Matrix koMc; // Class Mean Vector
-
-         /// For each class:
-         foreach( TcClass koC in voClass.Values )
-         {
-            /// -# Obtain the Mean Vector
-            koMc = koC.MGetMean( );
-
-            for( kiI = 0; kiI < koC.Count; kiI++ )
-            {
-               /// -# Subtract the Class Mean Vector from each Sample and store it in a tempory Vector
-               koSi = ( Matrix )koC.MGetSample( kiI ).Subtraction( koMc );
-
-               /// -# Multiply the temporary Vector by the transpose of the temporary Vector to get the Covariance Matrix
-               koSi = ( Matrix )koSi.Multiply( koSi.Transpose( ) );
-
-               /// -# Add the class Scatter Matrix to the Within-class Scatter Matrix
-               this.voSw = ( Matrix )voSw.Addition( koSi );
-            }
-         }
-
-         /// -# For each class:
-         foreach( TcClass koC in voClass.Values )
-         {
-            /// -# Get the Class Mean Vector and subtract the overall mean vector from it
-            koMc = ( Matrix )koC.MGetMean( ).Subtraction( voMb );
-
-            /// -# Multiply the adjusted Mean Vector by the Transpose of the adjusted Mean Vector, and
-            ///    add it to the Between Class Scatter Matrix
-            voSb = ( Matrix )voSb.Addition( koMc.Multiply( koMc.Transpose( ) ) ).Multiply( koC.Count );
+            /// -# Add the image to the class sample list
+            this.voClasses[ koImg.VoId ].Add( koImg );
          }
       }
+   
+      private void mExecPCA( )
+      {         
+         /// -# Calculate the Sample Size: Eigen Faces = Image Count - Class Count
+         this.voSampleSize = this.voImages.Count - this.voClasses.Count;
 
-      private void mComputeEigenValues( )
-      {
-         IEigenvalueDecomposition koEDecomp;
-         IMatrix                  koEMat;
-         Matrix                   koRes;
-         double[ ]                kdEVal;
-         double[ ]                kdEVec;
-         int                      kiR, kiC;
+         /// -# Initialize PCA with the image data and Eigen Face count
+         this.voPCA = new PCA.TcPCA( voImages, this.voSampleSize );
 
-         /// -# Calculate the Eigen Decomposition for (Sw^-1)(Sb)
-         koRes = ( Matrix )this.voSw.Inverse.Multiply( voSb );
-         koEDecomp = koRes.GetEigenvalueDecomposition( );
-
-         /// -# Obtain the Eigen Vector Matrix
-         koEMat = koEDecomp.EigenvectorMatrix;
-
-         /// -# Obtain the Real Eigen Values
-         kdEVal = koEDecomp.RealEigenvalues;
-
-         /// -# Create a new list of Eigen Vectors
-         this.voEV = new List< TcVector >( );
-
-         /// -# Create empty eigen vector
-         kdEVec = new double[ voSb.Columns ];
-         
-         /// -# Add the eigen vectors to the list of eigen vectors
-         for( kiC = 0; kiC < voSb.Columns; kiC++ )
-         {
-            for( kiR = 0; kiR < voSb.Rows; kiR++ )
-            {
-               kdEVec[ kiR ] = koEMat[ kiR, kiC ];
-            }
-            this.voEV.Add( new TcVector( kdEVal[ kiC ], kdEVec, voSb.Columns ) );
-         }
-
-         /// -# Sort the Eigen Vector lsit
-         this.voEV.Sort( );
+         /// -# Execute PCA
+         this.voPCA.MTrain( );
       }
 
-      private void mSelectLinearDiscriminants( )
+      private void mExecLDA( )
       {
-         int kiR, kiC;
+         /// -# Create a new LDA object
+         this.voLDA = new LDA.TcLDA( this.voClasses, this.voSampleSize );
 
-         /// -# Create the Eigen Vector Matrix
-         this.voW = new Matrix( this.voSb.Rows, this.viEc );
-         for( kiC = 0; kiC < this.viEc; kiC++ )
-         {
-            for( kiR = 0; kiR < this.voEV[ kiC ].VdData.Length; kiR++ )
-            {
-               this.voW[ kiR, kiC ] = this.voEV[ kiC ].VdData[ kiR ];
-            }
-         }
+         /// -# Execute the LDA
+         this.voLDA.MTrain( );
       }
 
-      private void mProject( )
+      public TcImage MReconstruct( TcImage aoImg, ref TcMatch[ ] aoMatchesPCA, ref TcMatch[ ] aoMatchesLDA )
       {
-         ///Matrix koX = new Matrix(  
-         ///Y = W.T * X
+         /// Create empty reconstructed Image
+         TcImage    koRec = new TcImage( aoImg.ViWidth, aoImg.ViHeight );  
+
+         /// -# Reconstruct the image and determine matches using PCA
+         koRec = this.voPCA.MReconstruct( aoImg, ref aoMatchesPCA ); 
+
+         /// -# Determine matches using LDA
+         this.voLDA.MMatches( aoImg, ref aoMatchesLDA );
+
+         return( koRec );
       }
    }
 }
+      

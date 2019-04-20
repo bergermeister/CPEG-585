@@ -1,14 +1,10 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-using FaceRecogPCA;
-
-namespace LDA
+﻿namespace LDA.LDA
 {
-   public class TcClass : List< TcSample >
+   using System;
+   using System.Collections.Generic;
+   using FaceRecogPCA;
+
+   public class TcClass : List< TcImage >
    {
       private string    voId;
       private double[ ] vdMean;  /**< Mean Vectors */ 
@@ -33,7 +29,7 @@ namespace LDA
          int kiI;
 
          /// -# Initialize the mean vector
-         this.vdMean = new double[ this[ 0 ].ViLength ];
+         this.vdMean = new double[ this[ 0 ].VdVecFSV.Length ];
 
          /// -# Initialize Matrix of Samples
 
@@ -44,11 +40,11 @@ namespace LDA
          }
 
          /// -# Add all linearized sample data into the mean vector
-         foreach( TcSample koS in this )
+         foreach( TcImage koImg in this )
          {
-            for( kiI = 0; kiI < koS.ViLength; kiI++ )
+            for( kiI = 0; kiI < koImg.VdVecFSV.Length; kiI++ )
             {
-               this.vdMean[ kiI ] += koS[ kiI ];
+               this.vdMean[ kiI ] += koImg.VdVecFSV[ kiI ];
             }
          }
 
@@ -74,15 +70,43 @@ namespace LDA
 
       public Matrix MGetSample( int aiIndex )
       {
-         Matrix koMat = new Matrix( this[ aiIndex ].ViLength, 1 );
+         Matrix koMat = new Matrix( this[ aiIndex ].VdVecFSV.Length, 1 );
          int    kiI;
 
-         for( kiI = 0; kiI < this[ aiIndex ].ViLength; kiI++ )
+         for( kiI = 0; kiI < this[ aiIndex ].VdVecFSV.Length; kiI++ )
          {
-            koMat[ kiI, 0 ] = this[ aiIndex ][ kiI ];
+            koMat[ kiI, 0 ] = this[ aiIndex ].VdVecFSV[ kiI ];
          }
          
          return( koMat );
+      }
+
+      public TcImage MBestMatch( TcImage aoImg, ref double adDist )
+      {
+         TcImage koBest = null;
+         double  kdDist;
+         int     kiI;
+
+         adDist = double.MaxValue;
+
+         foreach( TcImage koImg in this )
+         {
+            kdDist = 0.0;
+            for( kiI = 0; kiI < koImg.VdVecLDA.Length; kiI++ )
+            {
+               kdDist += ( ( koImg.VdVecLDA[ kiI ] - aoImg.VdVecLDA[ kiI ] ) *
+                           ( koImg.VdVecLDA[ kiI ] - aoImg.VdVecLDA[ kiI ] ) );
+            }
+            kdDist = Math.Sqrt( kdDist );
+
+            if( kdDist < adDist )
+            {
+               koBest = koImg;
+               adDist = kdDist;
+            }
+         }
+
+         return( koBest );
       }
    }
 }

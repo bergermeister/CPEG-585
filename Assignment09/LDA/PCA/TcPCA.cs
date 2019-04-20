@@ -1,13 +1,13 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-
-using FaceRecogPCA;
-using LDA.NEigen;
-
-namespace PCA
+﻿namespace LDA.PCA
 {
+   using System;
+   using System.Collections.Generic;
+   using System.IO;
+   using System.Linq;
+   using NEigen;
+   using FaceRecogPCA;
+
+
    public class TcPCA
    {
       private string           voPath;    /**< Path to training data */
@@ -26,7 +26,26 @@ namespace PCA
 
       public TcPCA( string aoPath, int aiCountEF )
       {
-         this.voPath    = aoPath;
+         /// -# Store the path
+         this.voPath = aoPath;
+
+         /// -# Store the Eigen Face Count
+         this.viCountEF = aiCountEF;
+
+         /// -# Read all images into the list
+         this.voImages = new List< TcImage >( );
+         foreach( string koFile in Directory.EnumerateFiles( this.voPath ) )
+         {
+            this.voImages.Add( new TcImage( koFile ) );
+         }
+      }
+
+      public TcPCA( List< TcImage > koImages, int aiCountEF )
+      {
+         /// -# Store the image list
+         this.voImages  = koImages;
+
+         /// -# Store the Eigen Face Count
          this.viCountEF = aiCountEF;
       }
 
@@ -42,16 +61,8 @@ namespace PCA
 
       public void MTrain( )
       {
-         this.voImages = new List< TcImage >( );
-
          try
          { 
-            /// -# Read all images into the list
-            foreach( string koFile in Directory.EnumerateFiles( this.voPath ) )
-            {
-               this.voImages.Add( new TcImage( koFile ) );
-            }
-
             /// -# Compute Average Image
             this.mComputeAvgImg( );
 
@@ -307,9 +318,37 @@ namespace PCA
 
       private void mComputeFS( TcImage aoImg )
       {
+         //*
+         Matrix koX = new Matrix( aoImg.VdVecAdj.Length, 1 );
+         Matrix koW = this.voMatEF; 
+         Matrix koY;
+         int    kiR; 
+
+         if( aoImg.VdVecFSV == null )
+         {
+            aoImg.VdVecFSV = new double[ this.viCountEF ];
+         }
+
+         /// -# Convert Image Data into Matrix
+         for( kiR = 0; kiR < aoImg.VdVecAdj.Length; kiR++ )
+         {
+            koX[ kiR, 0 ] = aoImg.VdVecAdj[ kiR ];
+         }
+
+         koY = ( Matrix )koW.Transpose( ).Multiply( koX );
+         for( kiR = 0; kiR < this.viCountEF; kiR++ )
+         {
+            aoImg.VdVecFSV[ kiR ] = koY[ kiR, 0 ];
+         }
+         /*         
          int    kiI, kiJ;
          double kdSum;
          TcFace koFace;
+
+         if( aoImg.VdVecFSV == null )
+         {
+            aoImg.VdVecFSV = new double[ this.viCountEF ];
+         }
 
          for( kiI = 0; kiI < this.voEF.Count; kiI++ )
          {
@@ -321,6 +360,7 @@ namespace PCA
             }
             aoImg.VdVecFSV[ kiI ] = kdSum;
          }
+         */
       }
    }
 }

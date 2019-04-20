@@ -547,8 +547,8 @@ namespace FaceRecogPCA
 	
 			int size = this.columns;
 			double[] column = new double[size];
-         Parallel.For( 0, columns, ( j ) =>
-			//for (int j = 0; j < columns; j++)
+         //Parallel.For( 0, columns, ( j ) =>
+			for (int j = 0; j < columns; j++)
 			{
 				for (int k = 0; k < size; k++)
 					column[k] = B[k,j];
@@ -560,7 +560,8 @@ namespace FaceRecogPCA
 						s += row[k] * column[k];
 					x[i][j] = s;
 				} 
-			});
+			}
+         //);
 	
 			return X;
 		}

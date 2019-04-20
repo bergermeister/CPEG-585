@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace PCA
+namespace LDA
 {
    public class TcMatch : IComparable
    {

@@ -76,25 +76,39 @@
          TcMatch[ ] koMatchesLDA = new TcMatch[ this.voFR.VoClasses.Count ];
          TcImage    koImg;
          TcImage    koRec;
-         double     kdAccuracy = 0.0;
-         double     kdCount = 0.0;
+         double     kdAccPCA = 0.0;
+         double     kdAccLDA = 0.0;
+         double     kdCount  = 0.0;
 
          /// -# Read all images into the list
          foreach( string koFile in Directory.EnumerateFiles( voPath + @"Testing\" ) )
          {
             koImg = new TcImage( koFile );
             koRec = this.voFR.MReconstruct( koImg, ref koMatchesPCA, ref koMatchesLDA );
+            if( koMatchesPCA[ 0 ].VoImgName.Substring( 0, 3 ) == koImg.VoName.Substring( 0, 3 ) )
+            {
+               kdAccPCA += 1.0;
+            }
+
             if( koMatchesLDA[ 0 ].VoImgName.Substring( 0, 3 ) == koImg.VoName.Substring( 0, 3 ) )
             {
-               kdAccuracy += 1.0;
+               kdAccLDA += 1.0;
+            }
+            else
+            {
+               Console.WriteLine( koImg.VoName + "\t" + koMatchesLDA[ 0 ].VoImgName );
             }
 
             kdCount += 1.0;
          }
 
-         kdAccuracy /= kdCount;
-         kdAccuracy *= 100.0;
-         MessageBox.Show( "Accuracy = " + kdAccuracy + "%" );
+         kdAccPCA /= kdCount;
+         kdAccPCA *= 100.0;
+
+         kdAccLDA /= kdCount;
+         kdAccLDA *= 100.0;
+
+         MessageBox.Show( "PCA Accuracy = " + kdAccPCA + "%" + Environment.NewLine + "LDA Accuracy = " + kdAccLDA + "%" );
       }
 
       private void mNormalizeDataAndShowFace( double[ ] adData, int aiWidth, int aiHeight, PictureBox aoPB )
@@ -131,6 +145,28 @@
             }
          }
          aoPB.Image = koBmp;
+      }
+
+      private void mNormalizeData( double[ ] adData, int aiWidth, int aiHeight )
+      {
+         double kdMax = ( from kdN in adData select kdN ).Max( );
+         double kdMin = ( from kdN in adData select kdN ).Min( );
+         double kdDlt = kdMax - kdMin;
+         int    kiI;
+
+         for( kiI = 0; kiI < ( aiWidth * aiHeight ); kiI++ )
+         {
+            adData[ kiI ] = adData[ kiI ] - kdMin;
+            adData[ kiI ] = ( adData[ kiI ] / kdDlt ) * 255.0;
+            if( adData[ kiI ] < 0 )
+            {
+               adData[ kiI ] = 0;
+            }
+            if( adData[ kiI ] > 255.0 )
+            {
+               adData[ kiI ] = 255.0;
+            }
+         }
       }
    }
 }

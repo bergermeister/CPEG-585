@@ -93,7 +93,7 @@
       private void mExecLDA( )
       {
          /// -# Create a new LDA object
-         this.voLDA = new LDA.TcLDA( this.voClasses, this.voSampleSize );
+         this.voLDA = new LDA.TcLDA( this.voImages, this.voClasses, this.voSampleSize );
 
          /// -# Execute the LDA
          this.voLDA.MTrain( );

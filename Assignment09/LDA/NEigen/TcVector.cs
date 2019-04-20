@@ -36,7 +36,7 @@ namespace LDA.NEigen
       public int CompareTo( Object aoRHS )
       {
          TcVector koEV = aoRHS as TcVector;
-         return( koEV.vdValue.CompareTo( this.vdValue ) );
+         return( ( koEV.vdValue * koEV.vdValue ).CompareTo( this.vdValue * this.vdValue ) );
       }
 
       public object Clone( )

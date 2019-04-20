@@ -340,27 +340,6 @@
          {
             aoImg.VdVecFSV[ kiR ] = koY[ kiR, 0 ];
          }
-         /*         
-         int    kiI, kiJ;
-         double kdSum;
-         TcFace koFace;
-
-         if( aoImg.VdVecFSV == null )
-         {
-            aoImg.VdVecFSV = new double[ this.viCountEF ];
-         }
-
-         for( kiI = 0; kiI < this.voEF.Count; kiI++ )
-         {
-            kdSum = 0.0;
-            koFace = this.voEF[ kiI ];
-            for( kiJ = 0; kiJ < this.voEF[ 0 ].VdData.Length; kiJ++ )
-            {
-               kdSum += aoImg.VdVecAdj[ kiJ ] * koFace.VdData[ kiJ ];
-            }
-            aoImg.VdVecFSV[ kiI ] = kdSum;
-         }
-         */
       }
    }
 }

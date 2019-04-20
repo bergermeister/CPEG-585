@@ -9,6 +9,7 @@
    {
       private int                           viN;      /**< Size of a sample */
       private int                           viCount;  /**< Number of samples */
+      private List< TcImage >               voImages; /**< List of all samples */
       private Dictionary< string, TcClass > voClass;  /**< Dictionary of classes */
       private List< TcVector >              voEV;     /**< List of Eigen Vectors */ 
       private Matrix                        voSb;     /**< Between-class Scatter Matrix */
@@ -16,8 +17,11 @@
       private Matrix                        voMb;     /**< Overall Mean */
       private Matrix                        voW;      /**< Projection (Eigen Vector) Matrix */
 
-      public TcLDA( Dictionary< string, TcClass > koClasses, int kiSampleSize )
+      public TcLDA( List< TcImage > koImages, Dictionary< string, TcClass > koClasses, int kiSampleSize )
       {
+         /// -# Store the images
+         this.voImages = koImages;
+
          /// -# Store the class dictionary
          this.voClass = koClasses;
 
@@ -99,7 +103,7 @@
          }
 
          /// -# Divide the overall mean vector by the number of classes
-         this.voMb.Multiply( 1.0 / voClass.Count );
+         this.voMb.Multiply( 1.0 / this.voClass.Count );
       }
 
       private void mComputeScatterMatrics( )
@@ -133,9 +137,15 @@
             /// -# Get the Class Mean Vector and subtract the overall mean vector from it
             koMc = ( Matrix )koC.MGetMean( ).Subtraction( voMb );
 
+            /// -# Multiply adjusted Mean Vector by the transpose of the adjusted Mean Vector
+            koSi = ( Matrix )koMc.Multiply( koMc.Transpose( ) );
+            
+            /// -# Multiply by the number of samples in the class
+            koSi = ( Matrix )koSi.Multiply( koC.Count );
+
             /// -# Multiply the adjusted Mean Vector by the Transpose of the adjusted Mean Vector, and
             ///    add it to the Between Class Scatter Matrix
-            voSb = ( Matrix )voSb.Addition( koMc.Multiply( koMc.Transpose( ) ) ); //.Multiply( koC.Count );
+            voSb = ( Matrix )voSb.Addition( koSi );
          }
       }
 
@@ -162,17 +172,25 @@
          this.voEV = new List< TcVector >( );
 
          /// -# Create empty eigen vector
-         kdEVec = new double[ voSb.Columns ];
+         kdEVec = new double[ this.viN ];
          
          /// -# Add the eigen vectors to the list of eigen vectors
-         for( kiC = 0; kiC < voSb.Columns; kiC++ )
+         for( kiC = 0; kiC < this.viN; kiC++ )
          {
             for( kiR = 0; kiR < voSb.Rows; kiR++ )
             {
                kdEVec[ kiR ] = koEMat[ kiR, kiC ];
             }
-            this.voEV.Add( new TcVector( kdEVal[ kiC ], kdEVec, voSb.Columns ) );
+            this.voEV.Add( new TcVector( kdEVal[ kiC ], kdEVec, this.viN ) );
          }
+
+         // TODO: Check Eigen Values
+         //for( kiC = 0; kiC < this.viN; kiC++ )
+         //{
+         //   Matrix koTemp = ( Matrix )koEMat.Submatrix( 0, this.viN - 1, kiC, kiC );
+         //   Matrix koComp = ( Matrix )koRes.Multiply( koTemp );
+         //   koTemp = ( Matrix )koTemp.Multiply( kdEVal[ kiC ] );
+         //}
 
          /// -# Sort the Eigen Vector lsit
          this.voEV.Sort( );
@@ -184,7 +202,7 @@
          int kiCount = this.voClass.Count - 1;
 
          /// -# Create the Eigen Vector Matrix
-         this.voW = new Matrix( this.voSb.Rows, kiCount );
+         this.voW = new Matrix( this.viN, kiCount );
          for( kiC = 0; kiC < kiCount; kiC++ )
          {
             for( kiR = 0; kiR < this.voEV[ kiC ].VdData.Length; kiR++ )
@@ -202,16 +220,11 @@
          int   kiR, kiC; 
 
          /// -# Convert Image Data into Matrix
-         kiC = 0;
-         foreach( TcClass koClass in this.voClass.Values )
+         for( kiC = 0; kiC < this.voImages.Count; kiC++ )
          {
-            foreach( TcImage koImg in koClass )
+            for( kiR = 0; kiR < this.viN; kiR++ )
             {
-               for( kiR = 0; kiR < this.viN; kiR++ )
-               {
-                  koX[ kiR, kiC ] = koImg.VdVecFSV[ kiR ];
-               }
-               kiC++;
+               koX[ kiR, kiC ] = this.voImages[ kiC ].VdVecFSV[ kiR ];
             }
          }
 
@@ -220,39 +233,18 @@
 
          /// -# Store the projection in the image
          kiC = 0;
-         foreach( TcClass koClass in this.voClass.Values )
+         for( kiC = 0; kiC < this.voImages.Count; kiC++ )
          {
-            foreach( TcImage koImg in koClass )
+            this.voImages[ kiC ].VdVecLDA = new double[ koY.Rows ];
+            for( kiR = 0; kiR < koY.Rows; kiR++ )
             {
-               koImg.VdVecLDA = new double[ koY.Rows ];
-               for( kiR = 0; kiR < koY.Rows; kiR++ )
-               {
-                  koImg.VdVecLDA[ kiR ] = koY[ kiR, kiC ];
-               }
-               kiC++;
+               this.voImages[ kiC ].VdVecLDA[ kiR ] = koY[ kiR, kiC ];
             }
          }
       }
 
       private void mProject( TcImage aoImg )
       {
-         //int      kiI, kiJ;
-         //double   kdSum;
-         //TcVector koVec;
-         //
-         //aoImg.VdVecLDA = new double[ this.viN ];
-         //
-         //for( kiI = 0; kiI < this.voEV.Count; kiI++ )
-         //{
-         //   kdSum = 0.0;
-         //   koVec = this.voEV[ kiI ];
-         //   for( kiJ = 0; kiJ < this.voEV[ 0 ].VdData.Length; kiJ++ )
-         //   {
-         //      kdSum += aoImg.VdVecAdj[ kiJ ] * koVec.VdData[ kiJ ];
-         //   }
-         //   aoImg.VdVecFSV[ kiI ] = kdSum;
-         //}
-
          Matrix koX = new Matrix( this.viN, 1 );
          Matrix koW = this.voW; 
          Matrix koY;

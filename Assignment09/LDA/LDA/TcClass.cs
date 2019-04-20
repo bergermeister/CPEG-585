@@ -31,8 +31,6 @@
          /// -# Initialize the mean vector
          this.vdMean = new double[ this[ 0 ].VdVecFSV.Length ];
 
-         /// -# Initialize Matrix of Samples
-
          /// -# Zero out the mean vector
          for( kiI = 0; kiI < this.vdMean.Length; kiI++ )
          {

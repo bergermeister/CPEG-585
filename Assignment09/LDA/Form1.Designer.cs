@@ -120,89 +120,89 @@
          // label17
          // 
          this.label17.AutoSize = true;
-         this.label17.Location = new System.Drawing.Point(760, 254);
+         this.label17.Location = new System.Drawing.Point(755, 254);
          this.label17.Margin = new System.Windows.Forms.Padding(2, 0, 2, 0);
          this.label17.Name = "label17";
-         this.label17.Size = new System.Drawing.Size(46, 13);
+         this.label17.Size = new System.Drawing.Size(70, 13);
          this.label17.TabIndex = 59;
-         this.label17.Text = "Match 7";
+         this.label17.Text = "PCA Match 3";
          this.label17.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
          // 
          // label16
          // 
          this.label16.AutoSize = true;
-         this.label16.Location = new System.Drawing.Point(664, 254);
+         this.label16.Location = new System.Drawing.Point(659, 254);
          this.label16.Margin = new System.Windows.Forms.Padding(2, 0, 2, 0);
          this.label16.Name = "label16";
-         this.label16.Size = new System.Drawing.Size(46, 13);
+         this.label16.Size = new System.Drawing.Size(70, 13);
          this.label16.TabIndex = 58;
-         this.label16.Text = "Match 6";
+         this.label16.Text = "PCA Match 2";
          this.label16.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
          // 
          // label15
          // 
          this.label15.AutoSize = true;
-         this.label15.Location = new System.Drawing.Point(568, 254);
+         this.label15.Location = new System.Drawing.Point(562, 254);
          this.label15.Margin = new System.Windows.Forms.Padding(2, 0, 2, 0);
          this.label15.Name = "label15";
-         this.label15.Size = new System.Drawing.Size(46, 13);
+         this.label15.Size = new System.Drawing.Size(70, 13);
          this.label15.TabIndex = 57;
-         this.label15.Text = "Match 5";
+         this.label15.Text = "PCA Match 1";
          this.label15.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
          // 
          // label14
          // 
          this.label14.AutoSize = true;
-         this.label14.Location = new System.Drawing.Point(474, 254);
+         this.label14.Location = new System.Drawing.Point(466, 254);
          this.label14.Margin = new System.Windows.Forms.Padding(2, 0, 2, 0);
          this.label14.Name = "label14";
-         this.label14.Size = new System.Drawing.Size(46, 13);
+         this.label14.Size = new System.Drawing.Size(70, 13);
          this.label14.TabIndex = 56;
-         this.label14.Text = "Match 4";
+         this.label14.Text = "PCA Match 0";
          this.label14.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
          // 
          // label13
          // 
          this.label13.AutoSize = true;
-         this.label13.Location = new System.Drawing.Point(760, 125);
+         this.label13.Location = new System.Drawing.Point(753, 125);
          this.label13.Margin = new System.Windows.Forms.Padding(2, 0, 2, 0);
          this.label13.Name = "label13";
-         this.label13.Size = new System.Drawing.Size(46, 13);
+         this.label13.Size = new System.Drawing.Size(70, 13);
          this.label13.TabIndex = 55;
-         this.label13.Text = "Match 3";
+         this.label13.Text = "LDA Match 3";
          this.label13.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
          // 
          // label12
          // 
          this.label12.AutoSize = true;
-         this.label12.Location = new System.Drawing.Point(664, 125);
+         this.label12.Location = new System.Drawing.Point(658, 125);
          this.label12.Margin = new System.Windows.Forms.Padding(2, 0, 2, 0);
          this.label12.Name = "label12";
-         this.label12.Size = new System.Drawing.Size(46, 13);
+         this.label12.Size = new System.Drawing.Size(70, 13);
          this.label12.TabIndex = 54;
-         this.label12.Text = "Match 2";
+         this.label12.Text = "LDA Match 2";
          this.label12.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
          // 
          // label11
          // 
          this.label11.AutoSize = true;
-         this.label11.Location = new System.Drawing.Point(568, 125);
+         this.label11.Location = new System.Drawing.Point(559, 125);
          this.label11.Margin = new System.Windows.Forms.Padding(2, 0, 2, 0);
          this.label11.Name = "label11";
-         this.label11.Size = new System.Drawing.Size(46, 13);
+         this.label11.Size = new System.Drawing.Size(70, 13);
          this.label11.TabIndex = 53;
-         this.label11.Text = "Match 1";
+         this.label11.Text = "LDA Match 1";
          this.label11.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
          // 
          // label10
          // 
          this.label10.AutoSize = true;
-         this.label10.Location = new System.Drawing.Point(474, 125);
+         this.label10.Location = new System.Drawing.Point(463, 125);
          this.label10.Margin = new System.Windows.Forms.Padding(2, 0, 2, 0);
          this.label10.Name = "label10";
-         this.label10.Size = new System.Drawing.Size(46, 13);
+         this.label10.Size = new System.Drawing.Size(70, 13);
          this.label10.TabIndex = 52;
-         this.label10.Text = "Match 0";
+         this.label10.Text = "LDA Match 0";
          this.label10.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
          // 
          // voImgMatch7

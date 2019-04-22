@@ -29,7 +29,7 @@
          int kiI;
 
          /// -# Initialize the mean vector
-         this.vdMean = new double[ this[ 0 ].VdVecFSV.Length ];
+         this.vdMean = new double[ this[ 0 ].VdVecRdc.Length ];
 
          /// -# Zero out the mean vector
          for( kiI = 0; kiI < this.vdMean.Length; kiI++ )
@@ -40,9 +40,9 @@
          /// -# Add all linearized sample data into the mean vector
          foreach( TcImage koImg in this )
          {
-            for( kiI = 0; kiI < koImg.VdVecFSV.Length; kiI++ )
+            for( kiI = 0; kiI < koImg.VdVecRdc.Length; kiI++ )
             {
-               this.vdMean[ kiI ] += koImg.VdVecFSV[ kiI ];
+               this.vdMean[ kiI ] += koImg.VdVecRdc[ kiI ];
             }
          }
 
@@ -68,43 +68,15 @@
 
       public Matrix MGetSample( int aiIndex )
       {
-         Matrix koMat = new Matrix( this[ aiIndex ].VdVecFSV.Length, 1 );
+         Matrix koMat = new Matrix( this[ aiIndex ].VdVecRdc.Length, 1 );
          int    kiI;
 
-         for( kiI = 0; kiI < this[ aiIndex ].VdVecFSV.Length; kiI++ )
+         for( kiI = 0; kiI < this[ aiIndex ].VdVecRdc.Length; kiI++ )
          {
-            koMat[ kiI, 0 ] = this[ aiIndex ].VdVecFSV[ kiI ];
+            koMat[ kiI, 0 ] = this[ aiIndex ].VdVecRdc[ kiI ];
          }
          
          return( koMat );
-      }
-
-      public TcImage MBestMatch( TcImage aoImg, ref double adDist )
-      {
-         TcImage koBest = null;
-         double  kdDist;
-         int     kiI;
-
-         adDist = double.MaxValue;
-
-         foreach( TcImage koImg in this )
-         {
-            kdDist = 0.0;
-            for( kiI = 0; kiI < koImg.VdVecLDA.Length; kiI++ )
-            {
-               kdDist += ( ( koImg.VdVecLDA[ kiI ] - aoImg.VdVecLDA[ kiI ] ) *
-                           ( koImg.VdVecLDA[ kiI ] - aoImg.VdVecLDA[ kiI ] ) );
-            }
-            kdDist = Math.Sqrt( kdDist );
-
-            if( kdDist < adDist )
-            {
-               koBest = koImg;
-               adDist = kdDist;
-            }
-         }
-
-         return( koBest );
       }
    }
 }

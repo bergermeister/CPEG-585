@@ -52,21 +52,21 @@
          if( koDlg.ShowDialog( ) == System.Windows.Forms.DialogResult.OK )
          {
             koImg = new TcImage( koDlg.FileName );
-            this.mNormalizeDataAndShowFace( koImg.VdVec, koImg.ViWidth, koImg.ViHeight, this.voImgChk );
+            this.mNormalizeDataAndShowFace( ( double[ ] )koImg.VdVec.Clone( ), koImg.ViWidth, koImg.ViHeight, this.voImgChk );
 
             this.voFR.VoPCA.MAdjustImage( koImg );
-            this.mNormalizeDataAndShowFace( koImg.VdVecAdj, koImg.ViWidth, koImg.ViHeight, this.voImgAdj );
+            this.mNormalizeDataAndShowFace( ( double[ ] )koImg.VdVecAdj.Clone( ), koImg.ViWidth, koImg.ViHeight, this.voImgAdj );
 
             koRec = this.voFR.MReconstruct( koImg, ref koMatchesPCA, ref koMatchesLDA );
-            this.mNormalizeDataAndShowFace( koRec.VdVec, koRec.ViWidth, koRec.ViHeight, this.voImgRec );
-            this.mNormalizeDataAndShowFace( koMatchesLDA[ 0 ].VoImg.VdVec, koRec.ViWidth, koRec.ViHeight, this.voImgMatch0 );
-            this.mNormalizeDataAndShowFace( koMatchesLDA[ 1 ].VoImg.VdVec, koRec.ViWidth, koRec.ViHeight, this.voImgMatch1 );
-            this.mNormalizeDataAndShowFace( koMatchesLDA[ 2 ].VoImg.VdVec, koRec.ViWidth, koRec.ViHeight, this.voImgMatch2 );
-            this.mNormalizeDataAndShowFace( koMatchesLDA[ 3 ].VoImg.VdVec, koRec.ViWidth, koRec.ViHeight, this.voImgMatch3 );
-            this.mNormalizeDataAndShowFace( koMatchesPCA[ 0 ].VoImg.VdVec, koRec.ViWidth, koRec.ViHeight, this.voImgMatch4 );
-            this.mNormalizeDataAndShowFace( koMatchesPCA[ 1 ].VoImg.VdVec, koRec.ViWidth, koRec.ViHeight, this.voImgMatch5 );
-            this.mNormalizeDataAndShowFace( koMatchesPCA[ 2 ].VoImg.VdVec, koRec.ViWidth, koRec.ViHeight, this.voImgMatch6 );
-            this.mNormalizeDataAndShowFace( koMatchesPCA[ 3 ].VoImg.VdVec, koRec.ViWidth, koRec.ViHeight, this.voImgMatch7 );
+            this.mNormalizeDataAndShowFace( ( double[ ] )koRec.VdVec.Clone( ), koRec.ViWidth, koRec.ViHeight, this.voImgRec );
+            this.mNormalizeDataAndShowFace( ( double[ ] )koMatchesLDA[ 0 ].VoImg.VdVec.Clone( ), koRec.ViWidth, koRec.ViHeight, this.voImgMatch0 );
+            this.mNormalizeDataAndShowFace( ( double[ ] )koMatchesLDA[ 1 ].VoImg.VdVec.Clone( ), koRec.ViWidth, koRec.ViHeight, this.voImgMatch1 );
+            this.mNormalizeDataAndShowFace( ( double[ ] )koMatchesLDA[ 2 ].VoImg.VdVec.Clone( ), koRec.ViWidth, koRec.ViHeight, this.voImgMatch2 );
+            this.mNormalizeDataAndShowFace( ( double[ ] )koMatchesLDA[ 3 ].VoImg.VdVec.Clone( ), koRec.ViWidth, koRec.ViHeight, this.voImgMatch3 );
+            this.mNormalizeDataAndShowFace( ( double[ ] )koMatchesPCA[ 0 ].VoImg.VdVec.Clone( ), koRec.ViWidth, koRec.ViHeight, this.voImgMatch4 );
+            this.mNormalizeDataAndShowFace( ( double[ ] )koMatchesPCA[ 1 ].VoImg.VdVec.Clone( ), koRec.ViWidth, koRec.ViHeight, this.voImgMatch5 );
+            this.mNormalizeDataAndShowFace( ( double[ ] )koMatchesPCA[ 2 ].VoImg.VdVec.Clone( ), koRec.ViWidth, koRec.ViHeight, this.voImgMatch6 );
+            this.mNormalizeDataAndShowFace( ( double[ ] )koMatchesPCA[ 3 ].VoImg.VdVec.Clone( ), koRec.ViWidth, koRec.ViHeight, this.voImgMatch7 );
          }
       }
 
@@ -145,28 +145,6 @@
             }
          }
          aoPB.Image = koBmp;
-      }
-
-      private void mNormalizeData( double[ ] adData, int aiWidth, int aiHeight )
-      {
-         double kdMax = ( from kdN in adData select kdN ).Max( );
-         double kdMin = ( from kdN in adData select kdN ).Min( );
-         double kdDlt = kdMax - kdMin;
-         int    kiI;
-
-         for( kiI = 0; kiI < ( aiWidth * aiHeight ); kiI++ )
-         {
-            adData[ kiI ] = adData[ kiI ] - kdMin;
-            adData[ kiI ] = ( adData[ kiI ] / kdDlt ) * 255.0;
-            if( adData[ kiI ] < 0 )
-            {
-               adData[ kiI ] = 0;
-            }
-            if( adData[ kiI ] > 255.0 )
-            {
-               adData[ kiI ] = 255.0;
-            }
-         }
       }
    }
 }

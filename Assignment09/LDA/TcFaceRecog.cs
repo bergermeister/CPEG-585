@@ -2,6 +2,7 @@
 {
    using System.Collections.Generic;
    using System.IO;
+   using System.Linq;
 
    public class TcFaceRecog
    {
@@ -46,8 +47,31 @@
          /// -# Execute PCA on the image set
          this.mExecPCA( );
 
+         foreach( TcImage koImg in this.voImages )
+         {
+            koImg.VdVecRdc = koImg.VdVecFSV;
+            //koImg.VdVecRdc = this.mNormalize( koImg.VdVecFSV );
+         }
+
          /// -# Execute LDA on the class set
          this.mExecLDA( );
+      }
+
+      public TcImage MReconstruct( TcImage aoImg, ref TcMatch[ ] aoMatchesPCA, ref TcMatch[ ] aoMatchesLDA )
+      {
+         /// Create empty reconstructed Image
+         TcImage koRec;
+
+         /// -# Reconstruct the image and determine matches using PCA
+         koRec = this.voPCA.MReconstruct( aoImg, ref aoMatchesPCA ); 
+
+         aoImg.VdVecRdc = aoImg.VdVecFSV;
+         //aoImg.VdVecRdc = this.mNormalize( aoImg.VdVecFSV );
+
+         /// -# Determine matches using LDA
+         this.voLDA.MMatches( aoImg, ref aoMatchesLDA );
+
+         return( koRec );
       }
 
       private void mReadImages( )
@@ -81,7 +105,9 @@
       private void mExecPCA( )
       {         
          /// -# Calculate the Sample Size: Eigen Faces = Image Count - Class Count
-         this.voSampleSize = this.voImages.Count - this.voClasses.Count;
+         //this.voSampleSize = this.VoImages.Count; 
+         //this.voSampleSize = ( this.voImages.Count - this.voClasses.Count );
+         this.voSampleSize = this.voClasses.Count + 39;
 
          /// -# Initialize PCA with the image data and Eigen Face count
          this.voPCA = new PCA.TcPCA( voImages, this.voSampleSize );
@@ -99,18 +125,30 @@
          this.voLDA.MTrain( );
       }
 
-      public TcImage MReconstruct( TcImage aoImg, ref TcMatch[ ] aoMatchesPCA, ref TcMatch[ ] aoMatchesLDA )
+      private double[ ] mNormalize( double[ ] adData )
       {
-         /// Create empty reconstructed Image
-         TcImage    koRec = new TcImage( aoImg.ViWidth, aoImg.ViHeight );  
+         double[ ] kdData = new double[ adData.Length ];
+         double    kdMax  = ( from kdN in adData select kdN ).Max( );
+         double    kdMin  = ( from kdN in adData select kdN ).Min( );
+         double    kdDlt  = kdMax - kdMin;
+         int       kiI;
+         
 
-         /// -# Reconstruct the image and determine matches using PCA
-         koRec = this.voPCA.MReconstruct( aoImg, ref aoMatchesPCA ); 
+         for( kiI = 0; kiI < kdData.Length; kiI++ )
+         {
+            kdData[ kiI ] = kdData[ kiI ] - kdMin;
+            kdData[ kiI ] = ( kdData[ kiI ] / kdDlt ) * 255.0;
+            if( kdData[ kiI ] < 0 )
+            {
+               kdData[ kiI ] = 0;
+            }
+            if( kdData[ kiI ] > 255.0 )
+            {
+               kdData[ kiI ] = 255.0;
+            }
+         }
 
-         /// -# Determine matches using LDA
-         this.voLDA.MMatches( aoImg, ref aoMatchesLDA );
-
-         return( koRec );
+         return( kdData );
       }
    }
 }

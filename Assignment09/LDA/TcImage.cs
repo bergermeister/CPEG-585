@@ -12,6 +12,7 @@
       private double[ ] vdVec;      /**< Linearized Image Vector */
       private double[ ] vdVecAdj;   /**< Mean Adjusted Vector */
       private double[ ] vdVecFSV;   /**< Face Space Vector (Projection onto reduced Dimension) */
+      private double[ ] vdVecRdc;   /**< Normalized Reduced Dimension */
       private double[ ] vdVecLDA;   /**< Image Vector projected using LDA */
 
       public string     VoId    { get{ return( this.voId ); } }
@@ -20,6 +21,7 @@
       public double[ ]  VdVec   { get{ return( this.vdVec ); } }
       public double[ ]  VdVecAdj{ get{ return( this.vdVecAdj ); } }
       public double[ ]  VdVecFSV{ get{ return( this.vdVecFSV ); } set{ this.vdVecFSV = value; } }
+      public double[ ]  VdVecRdc{ get{ return( this.vdVecRdc ); } set{ this.vdVecRdc = value; } }
       public double[ ]  VdVecLDA{ get{ return( this.vdVecLDA ); } set{ this.vdVecLDA = value; } }
       public Bitmap     VoBmp   { get{ return( this.voBmp ); } }
       public string     VoName  { get{ return( this.voName ); } }

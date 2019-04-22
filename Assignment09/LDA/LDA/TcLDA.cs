@@ -9,6 +9,7 @@
    {
       private int                           viN;      /**< Size of a sample */
       private int                           viCount;  /**< Number of samples */
+      private int                           viCountW; /**< Number of Projection Vectors to use */
       private List< TcImage >               voImages; /**< List of all samples */
       private Dictionary< string, TcClass > voClass;  /**< Dictionary of classes */
       private List< TcVector >              voEV;     /**< List of Eigen Vectors */ 
@@ -37,6 +38,8 @@
          {
             this.viCount += koClass.Count;
          }
+
+         this.viCountW = this.voClass.Count - 1;
       }
 
       public void MTrain( )
@@ -59,20 +62,25 @@
 
       public void MMatches( TcImage aoImg, ref TcMatch[ ] aoMatches )
       {
-         TcMatch[ ] koMatches = new TcMatch[ this.voClass.Count ];
-         TcImage    koImg;
+         TcMatch[ ] koMatches;
          double     kdDist = 0.0;
-         int        kiI;
+         int        kiI, kiJ;
 
          /// -# Project the image
          this.mProject( aoImg );
 
-         kiI = 0;
-         foreach( TcClass koClass in this.voClass.Values )
+         /// -# Find the best match
+         koMatches = new TcMatch[ this.voImages.Count ];
+         for( kiI = 0; kiI < this.voImages.Count; kiI++ )
          {
-            koImg = koClass.MBestMatch( aoImg, ref kdDist );
-            koMatches[ kiI ] = new TcMatch( koImg, kdDist, kiI );
-            kiI++;
+            kdDist = 0;
+            for( kiJ = 0; kiJ < this.viCountW; kiJ++ )
+            {
+               kdDist += ( ( this.voImages[ kiI ].VdVecLDA[ kiJ ] - aoImg.VdVecLDA[ kiJ ] ) *
+                           ( this.voImages[ kiI ].VdVecLDA[ kiJ ] - aoImg.VdVecLDA[ kiJ ] ) );
+            }
+            kdDist = Math.Sqrt( kdDist );
+            koMatches[ kiI ] = new TcMatch( this.voImages[ kiI ], kdDist, kiI );
          }
 
          Array.Sort( koMatches );
@@ -199,11 +207,10 @@
       private void mSelectLinearDiscriminants( )
       {
          int kiR, kiC;
-         int kiCount = this.voClass.Count - 1;
 
          /// -# Create the Eigen Vector Matrix
-         this.voW = new Matrix( this.viN, kiCount );
-         for( kiC = 0; kiC < kiCount; kiC++ )
+         this.voW = new Matrix( this.viN, this.viCountW );
+         for( kiC = 0; kiC < this.viCountW; kiC++ )
          {
             for( kiR = 0; kiR < this.voEV[ kiC ].VdData.Length; kiR++ )
             {
@@ -214,32 +221,9 @@
 
       private void mProject( )
       {
-         Matrix koX = new Matrix( this.viN, this.viCount );
-         Matrix koW = this.voW; 
-         Matrix koY;
-         int   kiR, kiC; 
-
-         /// -# Convert Image Data into Matrix
-         for( kiC = 0; kiC < this.voImages.Count; kiC++ )
+         foreach( TcImage koImg in this.voImages )
          {
-            for( kiR = 0; kiR < this.viN; kiR++ )
-            {
-               koX[ kiR, kiC ] = this.voImages[ kiC ].VdVecFSV[ kiR ];
-            }
-         }
-
-         /// -# Project Image: Y = W.T * X
-         koY = ( Matrix )koW.Transpose( ).Multiply( koX );
-
-         /// -# Store the projection in the image
-         kiC = 0;
-         for( kiC = 0; kiC < this.voImages.Count; kiC++ )
-         {
-            this.voImages[ kiC ].VdVecLDA = new double[ koY.Rows ];
-            for( kiR = 0; kiR < koY.Rows; kiR++ )
-            {
-               this.voImages[ kiC ].VdVecLDA[ kiR ] = koY[ kiR, kiC ];
-            }
+            this.mProject( koImg );
          }
       }
 
@@ -253,7 +237,7 @@
          /// -# Convert Image Data into Matrix
          for( kiR = 0; kiR < this.viN; kiR++ )
          {
-            koX[ kiR, 0 ] = aoImg.VdVecFSV[ kiR ];
+            koX[ kiR, 0 ] = aoImg.VdVecRdc[ kiR ];
          }
          
          /// -# Project Image: Y = W.T * X
